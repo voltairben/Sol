@@ -1,5 +1,5 @@
 import { TerminalPanel } from "@/components/ui/terminal-panel";
-import { SolAsciiHero } from "@/components/hero/sol-ascii-hero";
+import { SolHero } from "@/components/hero/sol-hero";
 import { StreamPlayer } from "@/components/console/stream-player";
 import { RequestBoard } from "@/components/hub/request-board";
 import { ScheduleCard } from "@/components/control/schedule-card";
@@ -40,10 +40,10 @@ export default function Home() {
         <div className="lg:col-span-3">
           <TerminalPanel
             label="sol.hero"
-            status="ascii://sol"
-            bodyClassName="grid min-h-[180px] place-items-center"
+            status="/sol_logo.v1.1"
+            bodyClassName="py-3"
           >
-            <SolAsciiHero />
+            <SolHero />
           </TerminalPanel>
         </div>
 

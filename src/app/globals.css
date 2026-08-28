@@ -235,16 +235,16 @@
 @keyframes vapor-glow {
   0%,
   100% {
-    opacity: 0.85;
+    opacity: 0.9;
     text-shadow:
-      0 0 4px var(--cyan),
-      0 0 12px color-mix(in oklab, var(--cyan) 45%, transparent);
+      0 0 4px currentColor,
+      0 0 12px color-mix(in oklab, currentColor 45%, transparent);
   }
   50% {
     opacity: 1;
     text-shadow:
-      0 0 8px var(--cyan),
-      0 0 22px var(--cyan);
+      0 0 8px currentColor,
+      0 0 22px currentColor;
   }
 }
 
