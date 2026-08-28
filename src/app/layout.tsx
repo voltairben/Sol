@@ -33,7 +33,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`dark ${jetbrainsMono.variable} ${departureMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full">
+      <body className="crt min-h-full">
         <AuthProvider>
           <StreamStateProvider>
             <SiteHeader />

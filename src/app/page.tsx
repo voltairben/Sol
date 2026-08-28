@@ -111,7 +111,6 @@ export default function Home() {
             label="sol.3d_visual_anchor"
             status="lazy"
             tone="persimmon"
-            scanlines={false}
             bodyClassName="p-3"
           >
             <WireBox

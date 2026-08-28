@@ -63,8 +63,8 @@
 :root,
 .dark {
   --bg: #0b0f19;
-  --surface: #0f1420;
-  --surface-2: #141a26;
+  --surface: #121824;
+  --surface-2: #1a2333;
   --text: #c8d0dc;
   --text-dim: #6b7688;
   --persimmon: #ff6b35;
@@ -72,15 +72,15 @@
 
   --background: #0b0f19;
   --foreground: #c8d0dc;
-  --card: #0f1420;
+  --card: #121824;
   --card-foreground: #c8d0dc;
-  --popover: #0f1420;
+  --popover: #121824;
   --popover-foreground: #c8d0dc;
   --primary: #ff6b35;
   --primary-foreground: #0b0f19;
-  --secondary: #151c2a;
+  --secondary: #171f2c;
   --secondary-foreground: #c8d0dc;
-  --muted: #141a26;
+  --muted: #1a2333;
   --muted-foreground: #6b7688;
   --accent: #12202e;
   --accent-foreground: #00f0ff;
@@ -96,7 +96,7 @@
   --chart-4: #3a4a5e;
   --chart-5: #c8d0dc;
 
-  --sidebar: #0f1420;
+  --sidebar: #121824;
   --sidebar-foreground: #c8d0dc;
   --sidebar-primary: #ff6b35;
   --sidebar-primary-foreground: #0b0f19;
@@ -162,24 +162,29 @@
   .animate-live {
     animation: sol-live 1.1s ease-in-out infinite;
   }
+}
 
-  /* ── CRT scanline overlay (static, decorative) ─────────────── */
-  .crt-scanlines::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1;
-    background: repeating-linear-gradient(
-      to bottom,
-      color-mix(in oklch, var(--cyan) 5%, transparent) 0px,
-      color-mix(in oklch, var(--cyan) 5%, transparent) 1px,
-      transparent 1px,
-      transparent 3px
+/* ── Full-screen CRT overlay ──────────────────────────────────
+ * Applied to <body class="crt">. Fixed, click-through, above everything.
+ * Horizontal scanlines + faint RGB sub-pixel stripes.
+ */
+.crt::after {
+  content: " ";
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.12) 50%),
+    linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.02),
+      rgba(0, 255, 0, 0.01),
+      rgba(0, 0, 255, 0.02)
     );
-    mix-blend-mode: soft-light;
-    opacity: 0.55;
-  }
+  background-size:
+    100% 4px,
+    3px 100%;
 }
 
 @keyframes sol-onair {

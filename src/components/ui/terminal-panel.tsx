@@ -12,21 +12,19 @@ interface TerminalPanelProps extends React.ComponentProps<"section"> {
   tone?: Tone;
   /** Adds a hover glow (use for panels the viewer acts on). */
   interactive?: boolean;
-  /** CRT scanline overlay on the body. Default on. */
-  scanlines?: boolean;
   bodyClassName?: string;
 }
 
 /**
  * The shared container for every card on the deck: thin monospaced border,
- * Departure Mono titlebar, CRT scanlines, and a glow on hover / focus-within.
+ * Departure Mono titlebar, and a glow on hover / focus-within. The CRT
+ * scanline texture is applied globally via `<body class="crt">`.
  */
 export function TerminalPanel({
   label,
   status,
   tone = "cyan",
   interactive = false,
-  scanlines = true,
   className,
   bodyClassName,
   children,
@@ -60,13 +58,7 @@ export function TerminalPanel({
           )}
         </header>
       )}
-      <div
-        className={cn(
-          "relative flex-1 p-4",
-          scanlines && "crt-scanlines",
-          bodyClassName,
-        )}
-      >
+      <div className={cn("relative flex-1 p-4", bodyClassName)}>
         {children}
       </div>
     </section>
