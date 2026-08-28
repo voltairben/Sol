@@ -2,50 +2,187 @@
 
 import { useEffect, useRef } from "react";
 
-const BG = "#0B0F19";
-const VOID = "#05070B";
-const CYAN = "#00F0FF";
-const PERSIMMON = "#FF6B35";
-const TILT = (-15 * Math.PI) / 180;
+const VERT = `#version 300 es
+in vec2 position;
+out vec2 v_uv;
+void main() {
+  v_uv = position * 0.5 + 0.5;
+  gl_Position = vec4(position, 0.0, 1.0);
+}`;
 
-interface Particle {
-  angle: number;
-  distance: number;
-  size: number;
-  z: number;
-  sprite: HTMLCanvasElement;
-}
-interface Star {
-  x: number;
-  y: number;
-  size: number;
-  a: number;
-  da: number;
+// Numerical geodesic raymarcher in the Schwarzschild metric.
+const FRAG = `#version 300 es
+precision highp float;
+
+in vec2 v_uv;
+out vec4 fragColor;
+
+uniform vec2 u_resolution;
+uniform float u_time;
+uniform vec2 u_mouse;
+uniform float u_narrow;
+
+#define PI 3.14159265359
+
+const vec3 colorPersimmon = vec3(1.0, 0.42, 0.21); // #FF6B35
+const vec3 colorNeonBlue  = vec3(0.0, 0.94, 1.0);  // #00F0FF
+
+float hash21(vec2 p) {
+  p = fract(p * vec2(234.34, 435.345));
+  p += dot(p, p + 34.23);
+  return fract(p.x * p.y);
 }
 
-/** Pre-baked radial glow so disk particles never touch ctx.shadowBlur. */
-function glowSprite(color: string, r = 18): HTMLCanvasElement {
-  const cv = document.createElement("canvas");
-  cv.width = cv.height = r * 2;
-  const g = cv.getContext("2d")!;
-  const grad = g.createRadialGradient(r, r, 0, r, r, r);
-  grad.addColorStop(0, color);
-  grad.addColorStop(0.4, `${color}aa`);
-  grad.addColorStop(1, `${color}00`);
-  g.fillStyle = grad;
-  g.beginPath();
-  g.arc(r, r, r, 0, Math.PI * 2);
-  g.fill();
-  return cv;
+float vnoiseWrapY(vec2 p, float perY) {
+  vec2 i = floor(p), f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  float y0 = mod(i.y, perY), y1 = mod(i.y + 1.0, perY);
+  return mix(
+    mix(hash21(vec2(i.x, y0)), hash21(vec2(i.x + 1.0, y0)), f.x),
+    mix(hash21(vec2(i.x, y1)), hash21(vec2(i.x + 1.0, y1)), f.x),
+    f.y
+  );
 }
+
+vec2 rot(vec2 v, float a) {
+  float c = cos(a), s = sin(a);
+  return vec2(c * v.x - s * v.y, s * v.x + c * v.y);
+}
+
+vec3 blackbody(float T) {
+  float t = clamp(T, 1500.0, 40000.0) / 100.0;
+  float r = t <= 66.0 ? 1.0 : clamp(1.292936 * pow(t - 60.0, -0.1332047), 0.0, 1.0);
+  float g = t <= 66.0
+    ? clamp(0.3900816 * log(t) - 0.6318414, 0.0, 1.0)
+    : clamp(1.1298909 * pow(t - 60.0, -0.0755148), 0.0, 1.0);
+  float b = t >= 66.0 ? 1.0 : (t <= 19.0 ? 0.0 : clamp(0.5432068 * log(t - 10.0) - 1.196254, 0.0, 1.0));
+  return vec3(r, g, b);
+}
+
+vec3 getStarfield(vec3 d) {
+  vec2 sph = vec2(atan(d.x, -d.z), asin(clamp(d.y, -1.0, 1.0)));
+  vec2 g = sph * 50.0;
+  vec2 id = floor(g);
+  float h = hash21(id);
+  if (h < 0.96) return vec3(0.0);
+  vec2 f = fract(g) - 0.5;
+  vec2 off = (vec2(hash21(id + 17.3), hash21(id + 31.7)) - 0.5) * 0.7;
+  float spark = smoothstep(0.08, 0.0, length(f - off));
+  float tw = 0.6 + 0.4 * sin(u_time * (1.0 + 3.0 * hash21(id + 5.1)));
+  vec3 tint = mix(vec3(0.8, 0.85, 1.0), vec3(1.0, 0.85, 0.75), hash21(id + 2.7));
+  return tint * spark * tw;
+}
+
+void main() {
+  vec2 aspectUV = (gl_FragCoord.xy / u_resolution) - vec2(0.5);
+  aspectUV.x *= u_resolution.x / u_resolution.y;
+
+  float zCam = 18.0;
+  vec3 ro = vec3(0.0, 2.5, zCam);
+  ro.xz = rot(ro.xz, u_mouse.x * 0.2);
+  ro.yz = rot(ro.yz, u_mouse.y * 0.15);
+
+  vec3 ww = normalize(vec3(0.0) - ro);
+  vec3 uu = normalize(cross(ww, vec3(0.0, 1.0, 0.0)));
+  vec3 vv = normalize(cross(uu, ww));
+
+  float fov = u_narrow > 0.5 ? 1.0 : 1.35;
+  vec3 rd = normalize(aspectUV.x * uu + aspectUV.y * vv + fov * ww);
+
+  float r_s = 1.0;
+  float h2 = dot(cross(ro, rd), cross(ro, rd));
+
+  float r_in = 2.6;
+  float r_out = 9.5;
+
+  vec3 x = ro;
+  vec3 v = rd;
+
+  vec3 emitc = vec3(0.0);
+  float trans = 1.0;
+  bool captured = false;
+  float sPrev = x.y;
+  vec3 xPrev = x;
+
+  int steps = u_narrow > 0.5 ? 84 : 140;
+
+  for (int i = 0; i < steps; i++) {
+    float r2 = dot(x, x);
+    if (r2 < r_s * 1.002) { captured = true; break; }
+    if (r2 > zCam * zCam * 2.5) break;
+
+    float r = sqrt(r2);
+    float dt = clamp(0.12 * r, 0.04, 1.4);
+
+    vec3 a = -1.5 * h2 * x / (r2 * r2 * r);
+    v += a * (0.5 * dt);
+    x += v * dt;
+    r2 = dot(x, x);
+    r = sqrt(r2);
+    a = -1.5 * h2 * x / (r2 * r2 * r);
+    v += a * (0.5 * dt);
+
+    float s = x.y;
+    if (s * sPrev < 0.0 && trans > 0.01) {
+      float tc = sPrev / (sPrev - s);
+      vec3 xc = mix(xPrev, x, tc);
+      float rc = length(xc);
+
+      if (rc >= r_in && rc <= r_out) {
+        float band = smoothstep(r_in, r_in * 1.15, rc) * (1.0 - smoothstep(r_out * 0.75, r_out, rc));
+
+        float phi = atan(xc.z, xc.x);
+        float turns = phi / (2.0 * PI);
+        float kepSpeed = pow(r_in / rc, 1.5);
+        float dilation = sqrt(max(1.0 - 1.5 * r_s / rc, 0.05));
+        float swirl = rc * 6.5 - u_time * kepSpeed * 4.5 * dilation;
+
+        float streaks = vnoiseWrapY(vec2(rc * 3.2, turns * 16.0 + swirl * 2.0), 16.0) * 0.6 +
+                        vnoiseWrapY(vec2(rc * 1.2, turns * 8.0 + swirl * 1.0 + 5.0), 8.0) * 0.4;
+        streaks = 0.2 + 1.8 * streaks * streaks;
+
+        vec3 gasDir = normalize(vec3(-xc.z, 0.0, xc.x));
+        float beta = clamp(inversesqrt(max(2.0 * (rc - r_s), 0.1)), 0.0, 0.95);
+        float g = dilation / max(1.0 + beta * dot(gasDir, normalize(v)), 0.05);
+
+        float tProfile = pow(r_in / rc, 0.75) * pow(max(1.0 - sqrt(r_in / rc), 0.0), 0.25) / 0.488;
+        float baseTemp = 6500.0;
+        vec3 cbb = blackbody(baseTemp * tProfile * g);
+
+        vec3 diskColor = mix(colorPersimmon, colorNeonBlue, clamp((g - 0.7) * 1.5, 0.0, 1.0));
+        diskColor *= mix(vec3(1.2), cbb, 0.55); // temper blackbody so the brand hue reads
+
+        float boost = pow(g, 3.2);
+        float density = band * streaks;
+        emitc += trans * diskColor * (2.7 * density * tProfile * tProfile * boost);
+        trans *= 1.0 - clamp(0.85 * density, 0.0, 1.0);
+      }
+    }
+    sPrev = s;
+    xPrev = x;
+  }
+
+  vec3 bg = vec3(0.0);
+  if (!captured) bg += getStarfield(normalize(v));
+
+  vec3 col = bg * trans + (vec3(1.0) - exp(-emitc * 1.05));
+
+  vec2 uvDist = v_uv - 0.5;
+  col *= 1.0 - 0.28 * dot(uvDist, uvDist);
+
+  fragColor = vec4(col, 1.0);
+}`;
 
 /**
- * Supermassive lensing black hole. One <canvas>, one rAF loop. Sized to the
- * viewport so the disk blooms past the columns; solid blazing accretion ring
- * (white-hot → cyan → persimmon) tilted -15°. DPR-capped, sprite-blitted,
- * pauses when hidden, static under prefers-reduced-motion, and — once it drops
- * a run of frames — halves its budget AND renders at ~30fps to spare the panel
- * backdrop-blur.
+ * WebGL2 raymarched Schwarzschild black hole — geodesic photon tracing for real
+ * gravitational lensing, an Interstellar-style double-arc disk, and relativistic
+ * doppler beaming. Adaptive resolution keeps it near 60fps, pauses when hidden,
+ * renders one static frame under prefers-reduced-motion. Solid #0B0F19 if WebGL2
+ * is unavailable.
+ *
+ * ponytail: a full-screen raymarcher behind 8 backdrop-blur panels is a real GPU
+ * load — the adaptive res scaler is the safety valve; drop step count / kill the
+ * panel blur if profiles on low-end hardware still stutter.
  */
 export function BlackHoleBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -53,207 +190,119 @@ export function BlackHoleBackground() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d", { alpha: false });
-    if (!ctx) return;
+    const gl = canvas.getContext("webgl2", {
+      antialias: false,
+      powerPreference: "low-power",
+      alpha: false,
+    });
+    if (!gl) return;
 
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
-    let W = 0;
-    let H = 0;
+    const compile = (src: string, type: number) => {
+      const sh = gl.createShader(type)!;
+      gl.shaderSource(sh, src);
+      gl.compileShader(sh);
+      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+        console.error("shader:", gl.getShaderInfoLog(sh));
+        gl.deleteShader(sh);
+        return null;
+      }
+      return sh;
+    };
+
+    const vs = compile(VERT, gl.VERTEX_SHADER);
+    const fs = compile(FRAG, gl.FRAGMENT_SHADER);
+    if (!vs || !fs) return;
+
+    const prog = gl.createProgram()!;
+    gl.attachShader(prog, vs);
+    gl.attachShader(prog, fs);
+    gl.linkProgram(prog);
+    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+      console.error("link:", gl.getProgramInfoLog(prog));
+      return;
+    }
+    gl.useProgram(prog);
+
+    const buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(
+      gl.ARRAY_BUFFER,
+      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+      gl.STATIC_DRAW,
+    );
+    const posLoc = gl.getAttribLocation(prog, "position");
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+    const uRes = gl.getUniformLocation(prog, "u_resolution");
+    const uTime = gl.getUniformLocation(prog, "u_time");
+    const uMouse = gl.getUniformLocation(prog, "u_mouse");
+    const uNarrow = gl.getUniformLocation(prog, "u_narrow");
+
+    const baseDpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    let narrow = window.innerWidth < 768;
+    let scale = narrow ? 0.72 : 0.92;
+
     const resize = () => {
-      W = window.innerWidth;
-      H = window.innerHeight;
-      canvas.width = Math.round(W * dpr);
-      canvas.height = Math.round(H * dpr);
-      canvas.style.width = `${W}px`;
-      canvas.style.height = `${H}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      ctx.fillStyle = BG;
-      ctx.fillRect(0, 0, W, H);
+      narrow = window.innerWidth < 768;
+      canvas.width = Math.max(2, Math.round(window.innerWidth * baseDpr * scale));
+      canvas.height = Math.max(
+        2,
+        Math.round(window.innerHeight * baseDpr * scale),
+      );
+      gl.viewport(0, 0, canvas.width, canvas.height);
     };
     resize();
-
-    const small = Math.min(W, H) < 640;
-    const base = () => Math.min(W, H);
-    const innerR = () => base() * (small ? 0.15 : 0.12); // singularity radius
-    const ringR = () => base() * (small ? 0.2 : 0.165); // ring centreline
-
-    const sprites = {
-      cyan: glowSprite(CYAN),
-      persimmon: glowSprite(PERSIMMON),
-    };
+    window.addEventListener("resize", resize);
 
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
     const onMove = (e: MouseEvent) => {
-      mouse.tx = (e.clientX - window.innerWidth / 2) * 0.05;
-      mouse.ty = (e.clientY - window.innerHeight / 2) * 0.05;
+      mouse.tx = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.ty = 1 - (e.clientY / window.innerHeight) * 2;
     };
     window.addEventListener("mousemove", onMove, { passive: true });
-    window.addEventListener("resize", resize);
 
-    const maxDist = Math.max(W, H) * 0.72;
-    const disk: Particle[] = Array.from(
-      { length: small ? 150 : 260 },
-      () => {
-        const distance =
-          Math.pow(Math.random(), 0.8) * (maxDist - innerR() * 1.5) +
-          innerR() * 1.5;
-        return {
-          angle: Math.random() * Math.PI * 2,
-          distance,
-          size: rand(0.5, 2.2),
-          z: rand(0.6, 2.2),
-          sprite: Math.random() > 0.42 ? sprites.cyan : sprites.persimmon,
-        };
-      },
-    );
-
-    const stars: Star[] = Array.from({ length: small ? 90 : 150 }, () => ({
-      x: Math.random() * W,
-      y: Math.random() * H,
-      size: rand(0.3, 1.4),
-      a: Math.random(),
-      da: rand(0.004, 0.014),
-    }));
-
+    const t0 = performance.now();
     let raf = 0;
     let running = true;
-    let last = performance.now();
-    let slowRun = 0;
-    let downgraded = false;
-    let tick = 0;
+    let last = t0;
+    let slow = 0;
 
-    const frame = (now: number) => {
-      if (!downgraded) {
-        if (now - last > 22) slowRun++;
-        else slowRun = Math.max(0, slowRun - 1);
-        if (slowRun > 60) {
-          disk.length = Math.max(40, disk.length >> 1);
-          stars.length = Math.max(30, stars.length >> 1);
-          downgraded = true;
-        }
-      }
+    const render = (now: number) => {
+      const dt = now - last;
       last = now;
-      tick++;
-
-      // downgraded → render every other frame (~30fps) to ease the backdrop-blur
-      if (!downgraded || tick % 2 === 0) {
-        const cx = W / 2 + (mouse.x += (mouse.tx - mouse.x) * 0.05);
-        const cy = H / 2 + (mouse.y += (mouse.ty - mouse.y) * 0.05);
-        const inner = innerR();
-        const ring = ringR();
-
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = reduce ? BG : "rgba(11,15,25,0.3)"; // trail-clear → light trails
-        ctx.fillRect(0, 0, W, H);
-
-        // ── stars: twinkle + gravitational pull ──
-        ctx.fillStyle = "#dbe6f5";
-        for (const s of stars) {
-          if (!reduce) {
-            s.a += s.da;
-            if (s.a > 1 || s.a < 0) s.da = -s.da;
-          }
-          const dx = cx - s.x;
-          const dy = cy - s.y;
-          const d = Math.sqrt(dx * dx + dy * dy) || 1;
-          let px = s.x;
-          let py = s.y;
-          if (d > 40) {
-            const f = ((inner * 0.9) / d) * 2;
-            px += (dx / d) * f;
-            py += (dy / d) * f;
-          }
-          ctx.globalAlpha = Math.abs(s.a) * 0.55;
-          ctx.fillRect(px, py, s.size, s.size);
-        }
-
-        // ── accretion disk (blooms to the viewport edges), tilted ellipse ──
-        const ctil = Math.cos(TILT);
-        const stil = Math.sin(TILT);
-        for (const p of disk) {
-          if (!reduce) p.angle -= (0.0016 * 150) / p.distance; // outer = slower
-          const rx = Math.cos(p.angle) * p.distance;
-          const ry = Math.sin(p.angle) * p.distance * 0.22;
-          const x = cx + rx * ctil - ry * stil;
-          const y = cy + rx * stil + ry * ctil;
-          if (x < -30 || x > W + 30 || y < -30 || y > H + 30) continue;
-          const a = Math.min(0.85, p.distance / (inner * 1.6) - 0.12);
-          if (a <= 0) continue;
-          const dd = p.size * p.z * 5;
-          ctx.globalAlpha = a;
-          ctx.drawImage(p.sprite, x - dd / 2, y - dd / 2, dd, dd);
-        }
-
-        // ── colossal halo bloom ──
-        ctx.globalAlpha = 1;
-        const haloR = ring + base() * 0.5;
-        const halo = ctx.createRadialGradient(
-          cx,
-          cy,
-          inner * 0.6,
-          cx,
-          cy,
-          haloR,
-        );
-        halo.addColorStop(0, "rgba(0,240,255,0.5)");
-        halo.addColorStop(0.12, "rgba(0,240,255,0.26)");
-        halo.addColorStop(0.4, "rgba(255,107,53,0.12)");
-        halo.addColorStop(1, "rgba(11,15,25,0)");
-        ctx.fillStyle = halo;
-        ctx.beginPath();
-        ctx.arc(cx, cy, haloR, 0, Math.PI * 2);
-        ctx.fill();
-
-        // ── solid blazing ring — tilted + flattened ──
-        ctx.save();
-        ctx.translate(cx, cy);
-        ctx.rotate(TILT);
-        ctx.scale(1, 0.22);
-        const rg = ctx.createRadialGradient(0, 0, inner, 0, 0, ring * 1.4);
-        rg.addColorStop(0, "rgba(255,255,255,1)");
-        rg.addColorStop(0.16, "rgba(0,240,255,0.95)");
-        rg.addColorStop(0.55, "rgba(255,107,53,0.82)");
-        rg.addColorStop(1, "rgba(255,107,53,0)");
-        ctx.lineWidth = base() * 0.06;
-        ctx.strokeStyle = rg;
-        ctx.shadowBlur = 40;
-        ctx.shadowColor = CYAN;
-        ctx.beginPath();
-        ctx.arc(0, 0, ring, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.restore();
-        ctx.shadowBlur = 0;
-
-        // ── the singularity ──
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = VOID;
-        ctx.beginPath();
-        ctx.arc(cx, cy, inner, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "rgba(0,240,255,0.35)";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(cx, cy, inner, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
+      // adaptive resolution — sustained slow frames shrink the render target
+      if (dt > 20) slow++;
+      else slow = Math.max(0, slow - 2);
+      if (slow > 28 && scale > 0.45) {
+        scale = Math.max(0.45, scale - 0.13);
+        slow = 0;
+        resize();
       }
 
-      if (running && !reduce) raf = requestAnimationFrame(frame);
-    };
+      mouse.x += (mouse.tx - mouse.x) * 0.04;
+      mouse.y += (mouse.ty - mouse.y) * 0.04;
 
-    raf = requestAnimationFrame(frame);
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+      gl.uniform1f(uTime, (now - t0) * 0.001);
+      gl.uniform2f(uMouse, mouse.x, mouse.y);
+      gl.uniform1f(uNarrow, narrow ? 1 : 0);
+      gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+      if (running && !reduce) raf = requestAnimationFrame(render);
+    };
+    raf = requestAnimationFrame(render);
 
     const onVisibility = () => {
       running = !document.hidden;
       if (running && !reduce) {
         cancelAnimationFrame(raf);
         last = performance.now();
-        raf = requestAnimationFrame(frame);
+        raf = requestAnimationFrame(render);
       }
     };
     document.addEventListener("visibilitychange", onVisibility);
@@ -261,9 +310,13 @@ export function BlackHoleBackground() {
     return () => {
       running = false;
       cancelAnimationFrame(raf);
-      window.removeEventListener("mousemove", onMove);
       window.removeEventListener("resize", resize);
+      window.removeEventListener("mousemove", onMove);
       document.removeEventListener("visibilitychange", onVisibility);
+      gl.deleteProgram(prog);
+      gl.deleteBuffer(buf);
+      gl.deleteShader(vs);
+      gl.deleteShader(fs);
     };
   }, []);
 
@@ -271,7 +324,7 @@ export function BlackHoleBackground() {
     <canvas
       ref={canvasRef}
       aria-hidden
-      style={{ background: BG }}
+      style={{ background: "#0B0F19", filter: "contrast(1.05) saturate(1.08)" }}
       className="pointer-events-none fixed inset-0 -z-10 block h-full w-full"
     />
   );

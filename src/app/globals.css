@@ -121,12 +121,7 @@
   }
   body {
     @apply bg-background text-foreground font-mono antialiased;
-    background-image: radial-gradient(
-      ellipse 90% 55% at 50% -12%,
-      color-mix(in oklch, var(--cyan) 7%, transparent),
-      transparent 72%
-    );
-    background-attachment: fixed;
+    /* the black-hole canvas is the backdrop now */
   }
   ::selection {
     background: var(--persimmon);
@@ -143,7 +138,7 @@
     border: 1px solid color-mix(in oklab, #fff 4.5%, transparent);
     border-radius: var(--radius);
     /* translucent so the black hole warps behind it */
-    background: color-mix(in oklab, var(--surface) 62%, transparent);
+    background: color-mix(in oklab, var(--surface) 68%, transparent);
     backdrop-filter: blur(18px) saturate(1.1);
     -webkit-backdrop-filter: blur(18px) saturate(1.1);
     box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
