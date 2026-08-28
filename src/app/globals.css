@@ -164,10 +164,6 @@
   }
 
   /* ── Phase 6 flourishes ───────────────────────────────────── */
-  .beam-drift {
-    stroke-dasharray: 64 1400;
-    animation: beam-drift linear infinite;
-  }
   .vapor-text {
     animation: vapor-glow 2.6s ease-in-out infinite;
   }
@@ -226,12 +222,6 @@
   }
 }
 
-@keyframes beam-drift {
-  to {
-    stroke-dashoffset: -1400;
-  }
-}
-
 @keyframes vapor-glow {
   0%,
   100% {
@@ -262,7 +252,6 @@
   .animate-onair,
   .animate-live,
   .animate-pulse,
-  .beam-drift,
   .vapor-text,
   .vu-bar {
     animation: none !important;

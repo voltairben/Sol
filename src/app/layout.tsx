@@ -4,7 +4,7 @@ import localFont from "next/font/local";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { StreamStateProvider } from "@/components/stream/stream-state-provider";
 import { SiteHeader } from "@/components/layout/site-header";
-import { BackgroundBeams } from "@/components/effects/background-beams";
+import { BlackHoleBackground } from "@/components/effects/black-hole-background";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -35,7 +35,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`dark ${jetbrainsMono.variable} ${departureMono.variable} h-full antialiased`}
     >
       <body className="crt min-h-full">
-        <BackgroundBeams />
+        <BlackHoleBackground />
         <AuthProvider>
           <StreamStateProvider>
             <SiteHeader />
