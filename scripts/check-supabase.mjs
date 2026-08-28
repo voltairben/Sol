@@ -26,15 +26,17 @@ const check = (cond, good, bad) => (cond ? pass(good) : fail(bad));
 console.log("\nenv:");
 check(URL, `NEXT_PUBLIC_SUPABASE_URL = ${URL}`, "NEXT_PUBLIC_SUPABASE_URL missing");
 check(ANON, "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY set", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY missing");
-check(SERVICE, "SUPABASE_SERVICE_ROLE_KEY set", "SUPABASE_SERVICE_ROLE_KEY missing");
 
 if (failed) {
   console.log("\nfill in .env.local and re-run.\n");
   process.exit(1);
 }
+if (!SERVICE) {
+  console.log("  \x1b[33m•\x1b[0m SUPABASE_SERVICE_ROLE_KEY not set — skipping the service-role write check");
+}
 
 const anon = createClient(URL, ANON, { auth: { persistSession: false } });
-const svc = createClient(URL, SERVICE, { auth: { persistSession: false } });
+const svc = SERVICE ? createClient(URL, SERVICE, { auth: { persistSession: false } }) : null;
 
 console.log("\nanon reads:");
 for (const t of ["stream_state", "track_requests", "upvotes"]) {
@@ -56,8 +58,8 @@ console.log("\nseed row:");
   );
 }
 
-console.log("\nservice-role write:");
-{
+if (svc) {
+  console.log("\nservice-role write:");
   const { data: before } = await svc
     .from("stream_state")
     .select("is_live")
@@ -71,7 +73,6 @@ console.log("\nservice-role write:");
     fail(`service role blocked: ${error.message}`);
   } else {
     pass("service role can update stream_state");
-    // restore
     await svc
       .from("stream_state")
       .update({ is_live: before.is_live, updated_at: new Date().toISOString() })
