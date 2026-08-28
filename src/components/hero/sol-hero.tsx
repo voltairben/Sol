@@ -1,72 +1,75 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "motion/react";
+import { motion, useReducedMotion } from "motion/react";
 import { DecryptText } from "@/components/effects/decrypt-text";
 
-const CRT_LINES =
-  "linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.15) 50%)";
+const BACK_GLOW =
+  "radial-gradient(circle, color-mix(in oklab, var(--cyan) 24%, transparent) 0%, color-mix(in oklab, var(--persimmon) 13%, transparent) 42%, transparent 72%)";
 
 export function SolHero() {
+  const reduce = useReducedMotion();
+
   return (
-    <div className="flex select-none flex-col items-center justify-center py-2">
-      {/* Terminal monitor bezel */}
+    <div className="relative flex select-none flex-col items-center justify-center py-8 md:py-12">
+      {/* Radial back-glow — melts the logo edges into whatever is behind */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.7, ease: "easeOut" }}
-        className="group relative aspect-[16/10] w-full max-w-[440px] overflow-hidden rounded-md border border-[color-mix(in_oklab,var(--cyan)_28%,transparent)] bg-[var(--surface)] shadow-[0_0_26px_-2px_color-mix(in_oklab,var(--cyan)_28%,transparent),0_0_48px_-12px_color-mix(in_oklab,var(--persimmon)_24%,transparent)] transition-all duration-300 hover:border-[color-mix(in_oklab,var(--cyan)_55%,transparent)] hover:shadow-[0_0_32px_-2px_color-mix(in_oklab,var(--cyan)_40%,transparent),0_0_56px_-10px_color-mix(in_oklab,var(--persimmon)_32%,transparent)]"
+        aria-hidden
+        className="pointer-events-none absolute -z-10 size-[300px] rounded-full blur-3xl md:size-[480px]"
+        style={{ backgroundImage: BACK_GLOW }}
+        animate={
+          reduce
+            ? { opacity: 0.7 }
+            : { opacity: [0.5, 0.82, 0.5], scale: [1, 1.06, 1] }
+        }
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Floating logo — no frame, no backdrop. sol-logo.png is the mark with
+          its baked-in black knocked out (luminance alpha), so its edges feather
+          straight into the background. */}
+      <motion.div
+        className="relative h-[180px] w-[280px] [filter:drop-shadow(0_0_22px_color-mix(in_oklab,var(--cyan)_28%,transparent))] sm:h-[248px] sm:w-[380px] md:h-[320px] md:w-[500px]"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={
+          reduce
+            ? { opacity: 1, scale: 1 }
+            : { opacity: 1, scale: 1, y: [-6, 6, -6] }
+        }
+        transition={{
+          opacity: { duration: 0.8, ease: "easeOut" },
+          scale: { duration: 0.8, ease: "easeOut" },
+          y: { duration: 6, repeat: Infinity, ease: "easeInOut" },
+        }}
       >
-        {/* CRT scanlines + centre glow */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-10 opacity-50"
-          style={{ backgroundImage: CRT_LINES, backgroundSize: "100% 4px" }}
+        <Image
+          src="/sol-logo.png"
+          alt="SOL_DNB"
+          fill
+          sizes="(max-width: 640px) 280px, (max-width: 768px) 380px, 500px"
+          priority
+          className="object-contain"
         />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(circle_at_center,color-mix(in_oklab,var(--cyan)_7%,transparent),transparent_70%)]"
-        />
-
-        {/* Corner brand tags */}
-        <span className="absolute left-3 top-2 z-20 font-mono text-[9px] tracking-[0.2em] text-[color-mix(in_oklab,var(--cyan)_60%,transparent)]">
-          [ CODENAME: SOL_CORE ]
-        </span>
-        <span className="absolute right-3 top-2 z-20 font-mono text-[9px] tracking-[0.2em] text-[color-mix(in_oklab,var(--persimmon)_60%,transparent)]">
-          [ V1.1_SECURE ]
-        </span>
-
-        {/* The logo */}
-        <div className="relative h-full w-full p-7">
-          <Image
-            src="/SolLogoDef1.1.png"
-            alt="SOL_DNB"
-            fill
-            sizes="440px"
-            priority
-            className="object-contain transition-transform duration-700 group-hover:scale-[1.03]"
-          />
-        </div>
-
-        {/* Bottom LED */}
-        <div className="absolute bottom-2 left-3 z-20 flex items-center gap-1.5">
-          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="font-mono text-[8px] tracking-wider text-[var(--text-dim)]">
-            LINK: ESTABLISHED
-          </span>
-        </div>
       </motion.div>
 
-      {/* System boot subheader */}
-      <motion.p
+      {/* System boot status */}
+      <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.5, duration: 0.5 }}
-        className="vapor-text mt-4 text-center font-departure text-[0.62rem] font-bold uppercase tracking-[0.18em] text-[var(--persimmon)] sm:text-[0.72rem]"
+        transition={{ delay: 0.6, duration: 0.5 }}
+        className="mt-7 font-mono"
       >
-        <DecryptText text="[SYSTEM_INIT: SUCCESS // AUDIO_DECK: ONLINE]" />
-        <span className="ml-1 inline-block h-3 w-1.5 translate-y-0.5 bg-[var(--persimmon)] animate-pulse" />
-      </motion.p>
+        <div className="inline-flex items-center gap-2 rounded-[3px] border border-[color-mix(in_oklab,var(--cyan)_22%,transparent)] bg-[color-mix(in_oklab,var(--surface)_45%,transparent)] px-2.5 py-1 shadow-[0_0_18px_-6px_color-mix(in_oklab,var(--cyan)_45%,transparent)] backdrop-blur-sm">
+          <span className="relative flex size-2 shrink-0">
+            <span className="absolute inline-flex size-full animate-ping rounded-full bg-[var(--cyan)] opacity-75" />
+            <span className="relative inline-flex size-2 rounded-full bg-[var(--cyan)]" />
+          </span>
+          <DecryptText
+            text="[ SYSTEM_INIT: SUCCESS // AUDIO_DECK: ONLINE ]"
+            className="vapor-text whitespace-nowrap text-[0.5rem] font-bold uppercase tracking-[0.1em] text-[var(--cyan)] md:text-[0.72rem] md:tracking-[0.15em]"
+          />
+        </div>
+      </motion.div>
     </div>
   );
 }

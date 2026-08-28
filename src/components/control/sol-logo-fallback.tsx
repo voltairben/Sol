@@ -5,7 +5,7 @@ export function SolLogoFallback() {
   return (
     <div className="grid aspect-square w-full place-items-center rounded-[2px] border border-[color-mix(in_oklab,var(--persimmon)_40%,transparent)] bg-[var(--bg)] p-4">
       <Image
-        src="/SolLogoDef1.1.png"
+        src="/sol-logo.png"
         alt="SOL_DNB"
         width={1535}
         height={1024}

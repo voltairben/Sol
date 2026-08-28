@@ -37,14 +37,9 @@ export default function Home() {
        * → requests → schedule/3d/links.
        */}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_1fr_0.9fr] lg:items-start">
+        {/* Hero — frameless, floats over the background */}
         <div className="lg:col-span-3">
-          <TerminalPanel
-            label="sol.hero"
-            status="/sol_logo.v1.1"
-            bodyClassName="py-3"
-          >
-            <SolHero />
-          </TerminalPanel>
+          <SolHero />
         </div>
 
         {/* LEFT — the console */}
