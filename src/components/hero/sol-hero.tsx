@@ -15,7 +15,7 @@ export function SolHero() {
       {/* Radial back-glow — melts the logo edges into whatever is behind */}
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute -z-10 size-[300px] rounded-full blur-3xl md:size-[480px]"
+        className="pointer-events-none absolute -z-10 size-[350px] rounded-full blur-3xl md:size-[560px]"
         style={{ backgroundImage: BACK_GLOW }}
         animate={
           reduce
@@ -29,7 +29,7 @@ export function SolHero() {
           its baked-in black knocked out (luminance alpha), so its edges feather
           straight into the background. */}
       <motion.div
-        className="relative h-[180px] w-[280px] [filter:drop-shadow(0_0_22px_color-mix(in_oklab,var(--cyan)_28%,transparent))] sm:h-[248px] sm:w-[380px] md:h-[320px] md:w-[500px]"
+        className="relative h-[214px] w-[330px] [filter:drop-shadow(0_0_24px_color-mix(in_oklab,var(--cyan)_28%,transparent))] sm:h-[292px] sm:w-[448px] md:h-[380px] md:w-[584px]"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={
           reduce
@@ -46,7 +46,7 @@ export function SolHero() {
           src="/sol-logo.png"
           alt="SOL_DNB"
           fill
-          sizes="(max-width: 640px) 280px, (max-width: 768px) 380px, 500px"
+          sizes="(max-width: 640px) 330px, (max-width: 768px) 448px, 584px"
           priority
           className="object-contain"
         />
