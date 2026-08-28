@@ -21,7 +21,7 @@ export const DNB_GENRES = [
 export type DnbGenre = (typeof DNB_GENRES)[number];
 
 export const SOCIAL_LINKS = [
-  { label: "github", value: "voltairben/Sol", href: "https://github.com/voltairben/Sol" },
+  { label: "instagram", value: "@sol_dnb", href: "https://www.instagram.com/sol_dnb/" },
   { label: "kick", value: CHANNELS.kick, href: `https://kick.com/${CHANNELS.kick}` },
   { label: "twitch", value: CHANNELS.twitch, href: `https://twitch.tv/${CHANNELS.twitch}` },
 ] as const;

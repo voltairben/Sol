@@ -71,7 +71,7 @@ export default function Home() {
 
           <TerminalPanel
             label="sol.3d_visual_anchor"
-            status="lazy"
+            status="core_midi"
             tone="persimmon"
             bodyClassName="p-3"
           >
