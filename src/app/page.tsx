@@ -1,4 +1,5 @@
 import { TerminalPanel } from "@/components/ui/terminal-panel";
+import { RequestBoard } from "@/components/hub/request-board";
 import { SOCIAL_LINKS } from "@/lib/constants";
 
 /* ── wireframe placeholders (Phase 2 only) ──────────────────────── */
@@ -113,20 +114,7 @@ export default function Home() {
 
         {/* CENTER — the engagement hub */}
         <div className="order-3 flex flex-col gap-4 lg:order-none">
-          <TerminalPanel
-            label="track.requests"
-            status="realtime"
-            interactive
-            bodyClassName="lg:min-h-[520px]"
-          >
-            <div className="flex flex-col gap-3">
-              <WireBox ratio="auto" note="＋ submit a track request" />
-              <Wire lines={2} />
-              <Wire lines={2} />
-              <Wire lines={2} />
-              <Wire lines={2} />
-            </div>
-          </TerminalPanel>
+          <RequestBoard />
         </div>
 
         {/* RIGHT — the control board */}
