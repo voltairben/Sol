@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Stray nested scaffold from a parallel effort — not part of this project.
+    "sol-portal/**",
   ]),
 ]);
 

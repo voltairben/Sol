@@ -41,6 +41,9 @@ yarn-error.log*
 /screenshot.mjs
 /*.png
 
+# stray nested scaffold from a parallel effort
+/sol-portal/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
