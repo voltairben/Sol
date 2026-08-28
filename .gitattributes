@@ -1,0 +1,6 @@
+# Normalize line endings — repo is authored on Windows, deploys on Linux.
+* text=auto eol=lf
+*.png binary
+*.ico binary
+*.woff2 binary
+*.glb binary
