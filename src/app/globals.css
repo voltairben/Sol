@@ -5,11 +5,18 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
+  /* Terminal Club — every face is monospaced */
+  --font-sans: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-mono: var(--font-jetbrains), ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-departure: var(--font-departure-mono), ui-monospace, monospace;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+
+  /* Brand accents as first-class utilities: bg-persimmon, text-cyan, border-cyan */
+  --color-persimmon: var(--persimmon);
+  --color-cyan: var(--cyan);
+
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,92 +46,130 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 3px;
+  --radius-xl: 4px;
+  --radius-2xl: 6px;
+  --radius-3xl: 8px;
+  --radius-4xl: 10px;
 }
 
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
+/*
+ * Dark-only site. The terminal palette lives on :root so it applies with or
+ * without the `dark` class; `.dark` mirrors it so shadcn/Base UI `dark:` styles
+ * still resolve.
+ */
+:root,
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  --bg: #0b0f19;
+  --surface: #0f1420;
+  --surface-2: #141a26;
+  --text: #c8d0dc;
+  --text-dim: #6b7688;
+  --persimmon: #ff6b35;
+  --cyan: #00f0ff;
+
+  --background: #0b0f19;
+  --foreground: #c8d0dc;
+  --card: #0f1420;
+  --card-foreground: #c8d0dc;
+  --popover: #0f1420;
+  --popover-foreground: #c8d0dc;
+  --primary: #ff6b35;
+  --primary-foreground: #0b0f19;
+  --secondary: #151c2a;
+  --secondary-foreground: #c8d0dc;
+  --muted: #141a26;
+  --muted-foreground: #6b7688;
+  --accent: #12202e;
+  --accent-foreground: #00f0ff;
+  --destructive: #ff6b35;
+  --border: #1e2a38;
+  --input: #1e2a38;
+  --ring: #00f0ff;
+  --radius: 3px;
+
+  --chart-1: #00f0ff;
+  --chart-2: #ff6b35;
+  --chart-3: #6b7688;
+  --chart-4: #3a4a5e;
+  --chart-5: #c8d0dc;
+
+  --sidebar: #0f1420;
+  --sidebar-foreground: #c8d0dc;
+  --sidebar-primary: #ff6b35;
+  --sidebar-primary-foreground: #0b0f19;
+  --sidebar-accent: #12202e;
+  --sidebar-accent-foreground: #00f0ff;
+  --sidebar-border: #1e2a38;
+  --sidebar-ring: #00f0ff;
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
   html {
-    @apply font-sans;
+    @apply font-mono;
+  }
+  body {
+    @apply bg-background text-foreground font-mono antialiased;
+    background-image: radial-gradient(
+      ellipse 90% 55% at 50% -12%,
+      color-mix(in oklch, var(--cyan) 7%, transparent),
+      transparent 72%
+    );
+    background-attachment: fixed;
+  }
+  ::selection {
+    background: var(--persimmon);
+    color: var(--bg);
+  }
+}
+
+@layer components {
+  /* ── Reusable terminal panel frame ─────────────────────────── */
+  .terminal-panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--surface);
+    transition:
+      border-color 200ms ease,
+      box-shadow 200ms ease;
+  }
+  .terminal-panel[data-tone="cyan"] {
+    --panel-tone: var(--cyan);
+  }
+  .terminal-panel[data-tone="persimmon"] {
+    --panel-tone: var(--persimmon);
+  }
+  .terminal-panel.is-interactive:hover,
+  .terminal-panel:focus-within {
+    border-color: var(--panel-tone);
+    box-shadow:
+      0 0 0 1px var(--panel-tone),
+      0 0 28px -10px var(--panel-tone);
+  }
+
+  /* ── CRT scanline overlay (static, decorative) ─────────────── */
+  .crt-scanlines::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    background: repeating-linear-gradient(
+      to bottom,
+      color-mix(in oklch, var(--cyan) 5%, transparent) 0px,
+      color-mix(in oklch, var(--cyan) 5%, transparent) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+    mix-blend-mode: soft-light;
+    opacity: 0.55;
   }
 }
