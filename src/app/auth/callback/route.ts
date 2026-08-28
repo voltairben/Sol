@@ -1,26 +1,44 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 
+/** Only relative in-app paths are allowed as the post-login destination. */
+function safeNext(next: string | null): string {
+  if (!next || !next.startsWith("/") || next.startsWith("//")) return "/";
+  return next;
+}
+
 /**
- * OAuth (Twitch / Discord) redirect target. Exchanges the PKCE `code` for a
- * session and sets the auth cookies, then bounces to `next` (or `/`).
+ * OAuth (Twitch / Discord) redirect target — the PKCE `code` exchange.
+ *
+ * The redirect origin is rebuilt from the proxy headers so preview and
+ * production deployments land on the request's own host (Vercel terminates TLS
+ * upstream, so `request.url` would otherwise read `http://` on the internal
+ * hop). Locally it falls back to the request origin.
  */
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get("code");
-  const next = searchParams.get("next") ?? "/";
+  const url = new URL(request.url);
+  const code = url.searchParams.get("code");
+  const next = safeNext(url.searchParams.get("next"));
 
-  if (code) {
-    const supabase = await createClient();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") ?? "https";
+  const origin =
+    process.env.NODE_ENV === "development" || !forwardedHost
+      ? url.origin
+      : `${forwardedProto}://${forwardedHost}`;
 
-    if (!error) {
-      const forwardedHost = request.headers.get("x-forwarded-host");
-      const isLocal = process.env.NODE_ENV === "development";
-      const base = isLocal || !forwardedHost ? origin : `https://${forwardedHost}`;
-      return NextResponse.redirect(`${base}${next}`);
-    }
+  if (!code) {
+    return NextResponse.redirect(`${origin}/auth/auth-code-error`);
   }
 
-  return NextResponse.redirect(`${origin}/auth/auth-code-error`);
+  const supabase = await createClient();
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
+
+  if (error) {
+    return NextResponse.redirect(
+      `${origin}/auth/auth-code-error?reason=${encodeURIComponent(error.message)}`,
+    );
+  }
+
+  return NextResponse.redirect(`${origin}${next}`);
 }
