@@ -5,7 +5,7 @@ import { RequestBoard } from "@/components/hub/request-board";
 import { ScheduleCard } from "@/components/control/schedule-card";
 import { Sol3DVisualAnchor } from "@/components/control/sol-3d-visual-anchor";
 import { NewsletterForm } from "@/components/newsletter/newsletter-form";
-import { SOCIAL_LINKS } from "@/lib/constants";
+import { SocialLinks } from "@/components/links/social-links";
 
 /** Placeholder for sections not yet built (about.deck). */
 function Wire({ lines = 3, label }: { lines?: number; label?: string }) {
@@ -80,15 +80,7 @@ export default function Home() {
 
           <TerminalPanel label="links.socials" interactive>
             <div className="flex flex-col gap-3">
-              <ul className="flex flex-col gap-1.5 text-[0.8rem]">
-                {SOCIAL_LINKS.map((l) => (
-                  <li key={l.label} className="flex gap-2">
-                    <span className="text-[var(--cyan)]">&gt;</span>
-                    <span className="text-[var(--text-dim)]">{l.label}</span>
-                    <span className="text-[var(--text)]">{l.value}</span>
-                  </li>
-                ))}
-              </ul>
+              <SocialLinks />
               <div className="border-t border-[var(--border)] pt-3">
                 <NewsletterForm />
               </div>

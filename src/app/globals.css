@@ -70,6 +70,12 @@
   --persimmon: #ff6b35;
   --cyan: #00f0ff;
 
+  /* accent aliases + soft glow colours */
+  --accent-blue: var(--cyan);
+  --accent-persimmon: var(--persimmon);
+  --accent-blue-glow: color-mix(in oklab, var(--cyan) 18%, transparent);
+  --accent-persimmon-glow: color-mix(in oklab, var(--persimmon) 18%, transparent);
+
   --background: #0b0f19;
   --foreground: #c8d0dc;
   --card: #121824;
