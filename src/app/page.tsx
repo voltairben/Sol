@@ -1,5 +1,6 @@
 import { TerminalPanel } from "@/components/ui/terminal-panel";
 import { RequestBoard } from "@/components/hub/request-board";
+import { ScheduleCard } from "@/components/control/schedule-card";
 import { SOCIAL_LINKS } from "@/lib/constants";
 
 /* ── wireframe placeholders (Phase 2 only) ──────────────────────── */
@@ -54,22 +55,7 @@ function WireBox({
 
 export default function Home() {
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-[1600px] flex-col gap-4 px-4 py-4 sm:px-6 sm:py-6">
-      <header className="flex items-center justify-between border-b border-[var(--border)] pb-3">
-        <div className="flex items-baseline gap-3">
-          <span className="font-departure text-lg uppercase tracking-[0.35em] text-[var(--text)]">
-            SOL_DNB
-          </span>
-          <span className="hidden text-[0.7rem] text-[var(--text-dim)] sm:inline">
-            {"// terminal club"}
-          </span>
-        </div>
-        <span className="flex items-center gap-2 font-departure text-[0.7rem] uppercase tracking-[0.16em] text-[var(--persimmon)]">
-          <span className="size-2 rounded-full bg-[var(--persimmon)]" />
-          off air
-        </span>
-      </header>
-
+    <div className="mx-auto flex min-h-full w-full max-w-[1600px] flex-col gap-4 border-t border-[var(--border)] px-4 pt-4 pb-6 sm:px-6">
       {/*
        * The deck: hero spans the top; below it three independent column stacks.
        * Columns are separate flex stacks so panel heights never bleed across
@@ -119,13 +105,7 @@ export default function Home() {
 
         {/* RIGHT — the control board */}
         <div className="order-4 flex flex-col gap-4 lg:order-none">
-          <TerminalPanel
-            label="broadcast.schedule"
-            status="live?"
-            tone="persimmon"
-          >
-            <Wire label="upcoming sets" lines={4} />
-          </TerminalPanel>
+          <ScheduleCard />
 
           <TerminalPanel
             label="sol.3d_visual_anchor"

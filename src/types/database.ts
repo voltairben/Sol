@@ -1,5 +1,5 @@
 /**
- * View models used across components. Mirrors `supabase/migrations/0001_init.sql`.
+ * View models used across components. Mirrors the `supabase/migrations/`.
  *
  * The generated `Database` type (`supabase gen types typescript`) can be added
  * later; the Supabase clients stay untyped until then.
@@ -9,6 +9,22 @@ export interface StreamState {
   id: 1;
   is_live: boolean;
   updated_at: string;
+}
+
+export type DnbGenre =
+  | "Liquid"
+  | "Dancefloor"
+  | "Neurofunk"
+  | "Jungle"
+  | "Breakbeat";
+
+export interface StreamSlot {
+  id: string;
+  starts_at: string;
+  ends_at: string | null;
+  title: string;
+  genre: DnbGenre | null;
+  created_at: string;
 }
 
 export type RequestStatus = "pending" | "playing" | "played";

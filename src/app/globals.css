@@ -155,6 +155,14 @@
       0 0 28px -10px var(--panel-tone);
   }
 
+  /* ── Live-state animations ────────────────────────────────── */
+  .animate-onair {
+    animation: sol-onair 2s ease-in-out infinite;
+  }
+  .animate-live {
+    animation: sol-live 1.1s ease-in-out infinite;
+  }
+
   /* ── CRT scanline overlay (static, decorative) ─────────────── */
   .crt-scanlines::after {
     content: "";
@@ -171,5 +179,39 @@
     );
     mix-blend-mode: soft-light;
     opacity: 0.55;
+  }
+}
+
+@keyframes sol-onair {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 1px var(--cyan),
+      0 0 10px -2px var(--cyan);
+  }
+  50% {
+    box-shadow:
+      0 0 0 1px var(--cyan),
+      0 0 20px 1px var(--cyan);
+  }
+}
+
+@keyframes sol-live {
+  0%,
+  100% {
+    box-shadow: 0 0 24px -8px var(--cyan);
+    background-color: color-mix(in oklab, var(--cyan) 8%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 40px -2px var(--cyan);
+    background-color: color-mix(in oklab, var(--cyan) 18%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-onair,
+  .animate-live,
+  .animate-pulse {
+    animation: none !important;
   }
 }

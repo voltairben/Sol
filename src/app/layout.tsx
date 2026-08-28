@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { StreamStateProvider } from "@/components/stream/stream-state-provider";
+import { SiteHeader } from "@/components/layout/site-header";
 import "./globals.css";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -32,7 +34,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`dark ${jetbrainsMono.variable} ${departureMono.variable} h-full antialiased`}
     >
       <body className="min-h-full">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          <StreamStateProvider>
+            <SiteHeader />
+            {children}
+          </StreamStateProvider>
+        </AuthProvider>
       </body>
     </html>
   );

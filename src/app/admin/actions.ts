@@ -1,17 +1,17 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getAdminSession, requireAdmin } from "@/lib/admin-session";
+import { getAdminSession } from "@/lib/admin-session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { safeEqual } from "@/lib/verify-secret";
 
-export type PasscodeState = { ok: boolean; error?: string };
+export type AdminResult = { ok: true } | { ok: false; error?: string };
 
-/** Verify the `/admin` passcode server-side and issue the encrypted session cookie. */
+/** Verify the passcode server-side and issue the encrypted iron-session cookie. */
 export async function verifyAdminPasscode(
-  _prev: PasscodeState,
+  _prev: AdminResult,
   formData: FormData,
-): Promise<PasscodeState> {
+): Promise<AdminResult> {
   const passcode = String(formData.get("passcode") ?? "");
   const expected = process.env.ADMIN_PASSCODE;
 
@@ -26,18 +26,23 @@ export async function verifyAdminPasscode(
   return { ok: true };
 }
 
-/** Toggle live state. Re-checks the admin cookie before the service-role write. */
-export async function setStreamLive(isLive: boolean): Promise<void> {
-  await requireAdmin();
+/** Flip the broadcast flag. Re-checks the admin cookie before the write. */
+export async function setStreamLive(isLive: boolean): Promise<AdminResult> {
+  const session = await getAdminSession();
+  if (!session.isAdmin) {
+    return { ok: false, error: "session expired — reload the page" };
+  }
 
-  const supabase = createAdminClient();
-  const { error } = await supabase
+  const { error } = await createAdminClient()
     .from("stream_state")
     .update({ is_live: isLive, updated_at: new Date().toISOString() })
     .eq("id", 1);
 
-  if (error) throw new Error(error.message);
+  if (error) return { ok: false, error: error.message };
+
   revalidatePath("/admin");
+  revalidatePath("/");
+  return { ok: true };
 }
 
 export async function logoutAdmin(): Promise<void> {

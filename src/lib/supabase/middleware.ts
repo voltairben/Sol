@@ -14,14 +14,14 @@ export async function updateSession(request: NextRequest) {
   // ponytail: no-op until Supabase env is wired (Phase 3) so local dev still boots.
   if (
     !process.env.NEXT_PUBLIC_SUPABASE_URL ||
-    !process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+    !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   ) {
     return supabaseResponse;
   }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {

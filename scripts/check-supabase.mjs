@@ -4,14 +4,14 @@
  *   node --env-file=.env.local scripts/check-supabase.mjs
  *   (or)  npm run db:check
  *
- * Checks: env vars present · anon can read the three tables · seed row exists ·
- * service role can write stream_state · anon canNOT write stream_state (RLS) ·
- * realtime channel subscribes.
+ * Checks: env vars present · anon key is a JWT · anon can read the three tables ·
+ * seed row exists · service role can write stream_state · anon canNOT (RLS) ·
+ * realtime subscribes AND actually delivers an event.
  */
 import { createClient } from "@supabase/supabase-js";
 
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const ANON = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+const ANON = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 let failed = 0;
@@ -25,7 +25,12 @@ const check = (cond, good, bad) => (cond ? pass(good) : fail(bad));
 
 console.log("\nenv:");
 check(URL, `NEXT_PUBLIC_SUPABASE_URL = ${URL}`, "NEXT_PUBLIC_SUPABASE_URL missing");
-check(ANON, "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY set", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY missing");
+check(ANON, "NEXT_PUBLIC_SUPABASE_ANON_KEY set", "NEXT_PUBLIC_SUPABASE_ANON_KEY missing");
+check(
+  !ANON || ANON.startsWith("eyJ"),
+  "anon key is a JWT (required for Realtime postgres_changes)",
+  "anon key is NOT a JWT — Realtime events will be dropped. Use the legacy anon key.",
+);
 
 if (failed) {
   console.log("\nfill in .env.local and re-run.\n");
@@ -107,27 +112,44 @@ console.log("\nanon write is blocked by RLS:");
 
 console.log("\nrealtime:");
 await new Promise((resolve) => {
-  const timer = setTimeout(() => {
-    fail("realtime: no SUBSCRIBED within 10s");
+  let got = false;
+  const done = () => {
+    if (!got && svc) fail("realtime: no event received within 12s (JWT key?)");
+    anon.removeChannel(ch);
     resolve();
-  }, 10_000);
+  };
+  const timer = setTimeout(done, 12_000);
+
   const ch = anon
     .channel("db-check")
     .on(
       "postgres_changes",
       { event: "*", schema: "public", table: "stream_state" },
-      () => {},
+      (payload) => {
+        got = true;
+        pass(`event received: ${payload.eventType} stream_state`);
+        clearTimeout(timer);
+        done();
+      },
     )
-    .subscribe((status) => {
+    .subscribe(async (status) => {
       if (status === "SUBSCRIBED") {
-        clearTimeout(timer);
         pass("subscribed to stream_state changes");
-        ch.unsubscribe();
-        resolve();
+        if (svc) {
+          // trigger a harmless change and expect the echo above
+          await svc
+            .from("stream_state")
+            .update({ updated_at: new Date().toISOString() })
+            .eq("id", 1);
+        } else {
+          console.log("  \x1b[33m•\x1b[0m no service key — can't trigger a change to verify delivery");
+          clearTimeout(timer);
+          done();
+        }
       } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
-        clearTimeout(timer);
         fail(`realtime: ${status}`);
-        resolve();
+        clearTimeout(timer);
+        done();
       }
     });
 });
