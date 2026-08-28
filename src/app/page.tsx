@@ -1,10 +1,13 @@
 import { TerminalPanel } from "@/components/ui/terminal-panel";
+import { SolAsciiHero } from "@/components/hero/sol-ascii-hero";
+import { StreamPlayer } from "@/components/console/stream-player";
 import { RequestBoard } from "@/components/hub/request-board";
 import { ScheduleCard } from "@/components/control/schedule-card";
+import { Sol3DVisualAnchor } from "@/components/control/sol-3d-visual-anchor";
+import { NewsletterForm } from "@/components/newsletter/newsletter-form";
 import { SOCIAL_LINKS } from "@/lib/constants";
 
-/* ── wireframe placeholders (Phase 2 only) ──────────────────────── */
-
+/** Placeholder for sections not yet built (about.deck). */
 function Wire({ lines = 3, label }: { lines?: number; label?: string }) {
   return (
     <div className="flex flex-col gap-2">
@@ -24,35 +27,6 @@ function Wire({ lines = 3, label }: { lines?: number; label?: string }) {
   );
 }
 
-function WireBox({
-  ratio = "16 / 9",
-  note,
-  tone = "border",
-  className = "",
-}: {
-  ratio?: string;
-  note?: string;
-  tone?: "border" | "persimmon";
-  className?: string;
-}) {
-  return (
-    <div
-      className={
-        "grid w-full place-items-center rounded-[2px] border border-dashed bg-[color-mix(in_oklab,var(--surface-2)_40%,transparent)] text-[0.7rem] text-[var(--text-dim)] " +
-        (tone === "persimmon"
-          ? "border-[color-mix(in_oklab,var(--persimmon)_55%,transparent)] "
-          : "border-[var(--border)] ") +
-        className
-      }
-      style={{ aspectRatio: ratio }}
-    >
-      {note ?? "▮ placeholder"}
-    </div>
-  );
-}
-
-/* ── page ───────────────────────────────────────────────────────── */
-
 export default function Home() {
   return (
     <div className="mx-auto flex min-h-full w-full max-w-[1600px] flex-col gap-4 border-t border-[var(--border)] px-4 pt-4 pb-6 sm:px-6">
@@ -69,11 +43,7 @@ export default function Home() {
             status="ascii://sol"
             bodyClassName="grid min-h-[180px] place-items-center"
           >
-            <p className="text-center font-departure text-sm leading-relaxed text-[var(--text-dim)]">
-              [ ASCII SOL LOGO ]
-              <br />
-              metallic decrypt-on-mount hero — phase 3
-            </p>
+            <SolAsciiHero />
           </TerminalPanel>
         </div>
 
@@ -81,13 +51,10 @@ export default function Home() {
         <div className="order-2 flex flex-col gap-4 lg:order-none">
           <TerminalPanel
             label="stream.console"
-            status="kick // twitch"
+            status="[_] [口] [x]"
             interactive
           >
-            <div className="flex flex-col gap-3">
-              <WireBox note="▶ video embed — 16:9" />
-              <Wire label="stream diagnostics" lines={4} />
-            </div>
+            <StreamPlayer />
           </TerminalPanel>
 
           <TerminalPanel label="about.deck">
@@ -113,29 +80,24 @@ export default function Home() {
             tone="persimmon"
             bodyClassName="p-3"
           >
-            <WireBox
-              ratio="4 / 3"
-              note="// model slot"
-              tone="persimmon"
-              className="mx-auto max-h-[300px]"
-            />
+            <Sol3DVisualAnchor />
           </TerminalPanel>
 
           <TerminalPanel label="links.socials" interactive>
-            <ul className="flex flex-col gap-1.5 text-[0.8rem]">
-              {SOCIAL_LINKS.map((l) => (
-                <li key={l.label} className="flex gap-2">
-                  <span className="text-[var(--cyan)]">&gt;</span>
-                  <span className="text-[var(--text-dim)]">{l.label}</span>
-                  <span className="text-[var(--text)]">{l.value}</span>
-                </li>
-              ))}
-              <li className="flex gap-2">
-                <span className="text-[var(--cyan)]">&gt;</span>
-                <span className="text-[var(--text-dim)]">email</span>
-                <span className="text-[var(--text)]">signup → resend</span>
-              </li>
-            </ul>
+            <div className="flex flex-col gap-3">
+              <ul className="flex flex-col gap-1.5 text-[0.8rem]">
+                {SOCIAL_LINKS.map((l) => (
+                  <li key={l.label} className="flex gap-2">
+                    <span className="text-[var(--cyan)]">&gt;</span>
+                    <span className="text-[var(--text-dim)]">{l.label}</span>
+                    <span className="text-[var(--text)]">{l.value}</span>
+                  </li>
+                ))}
+              </ul>
+              <div className="border-t border-[var(--border)] pt-3">
+                <NewsletterForm />
+              </div>
+            </div>
           </TerminalPanel>
         </div>
       </div>

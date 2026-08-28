@@ -162,6 +162,19 @@
   .animate-live {
     animation: sol-live 1.1s ease-in-out infinite;
   }
+
+  /* ── Phase 6 flourishes ───────────────────────────────────── */
+  .beam-drift {
+    stroke-dasharray: 64 1400;
+    animation: beam-drift linear infinite;
+  }
+  .vapor-text {
+    animation: vapor-glow 2.6s ease-in-out infinite;
+  }
+  .vu-bar {
+    height: 15%;
+    animation: vu ease-in-out infinite;
+  }
 }
 
 /* ── Full-screen CRT overlay ──────────────────────────────────
@@ -213,10 +226,48 @@
   }
 }
 
+@keyframes beam-drift {
+  to {
+    stroke-dashoffset: -1400;
+  }
+}
+
+@keyframes vapor-glow {
+  0%,
+  100% {
+    opacity: 0.85;
+    text-shadow:
+      0 0 4px var(--cyan),
+      0 0 12px color-mix(in oklab, var(--cyan) 45%, transparent);
+  }
+  50% {
+    opacity: 1;
+    text-shadow:
+      0 0 8px var(--cyan),
+      0 0 22px var(--cyan);
+  }
+}
+
+@keyframes vu {
+  0%,
+  100% {
+    height: 12%;
+  }
+  50% {
+    height: 100%;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-onair,
   .animate-live,
-  .animate-pulse {
+  .animate-pulse,
+  .beam-drift,
+  .vapor-text,
+  .vu-bar {
     animation: none !important;
+  }
+  .vu-bar {
+    height: 40%;
   }
 }
