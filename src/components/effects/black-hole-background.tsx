@@ -3,29 +3,28 @@
 import { useEffect, useRef } from "react";
 
 const BG = "#0B0F19";
+const VOID = "#05070B";
 const CYAN = "#00F0FF";
 const PERSIMMON = "#FF6B35";
-const EMBER = "#B23B15";
+const TILT = (-15 * Math.PI) / 180;
 
+interface Particle {
+  angle: number;
+  distance: number;
+  size: number;
+  z: number;
+  sprite: HTMLCanvasElement;
+}
 interface Star {
   x: number;
   y: number;
-  z: number;
-  color: string;
-}
-interface Particle {
-  angle: number;
-  radius: number;
-  speed: number;
   size: number;
-  alpha: number;
-  sprite: HTMLCanvasElement;
-  s: number;
-  c: number;
+  a: number;
+  da: number;
 }
 
-/** Pre-baked radial glow so particles never touch ctx.shadowBlur (the slow path). */
-function glowSprite(color: string, r = 16): HTMLCanvasElement {
+/** Pre-baked radial glow so disk particles never touch ctx.shadowBlur. */
+function glowSprite(color: string, r = 18): HTMLCanvasElement {
   const cv = document.createElement("canvas");
   cv.width = cv.height = r * 2;
   const g = cv.getContext("2d")!;
@@ -41,13 +40,12 @@ function glowSprite(color: string, r = 16): HTMLCanvasElement {
 }
 
 /**
- * Gravitationally-lensing black hole background. One <canvas>, one rAF loop,
- * sprite-blitted particles, DPR-capped, pauses when hidden, static under
- * prefers-reduced-motion, and halves its particle/star budget once if a run of
- * frames misses 60fps.
- *
- * ponytail: main-thread rAF. Move to OffscreenCanvas + worker only if a profile
- * shows the frame budget is still blown after the adaptive downgrade.
+ * Supermassive lensing black hole. One <canvas>, one rAF loop. Sized to the
+ * viewport so the disk blooms past the columns; solid blazing accretion ring
+ * (white-hot → cyan → persimmon) tilted -15°. DPR-capped, sprite-blitted,
+ * pauses when hidden, static under prefers-reduced-motion, and — once it drops
+ * a run of frames — halves its budget AND renders at ~30fps to spare the panel
+ * backdrop-blur.
  */
 export function BlackHoleBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -61,7 +59,7 @@ export function BlackHoleBackground() {
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
     let W = 0;
@@ -80,60 +78,54 @@ export function BlackHoleBackground() {
     resize();
 
     const small = Math.min(W, H) < 640;
-    const INNER = 92;
-    const OUTER = 300;
-    const TILT = 0.26; // vertical squash → an angled ring
+    const base = () => Math.min(W, H);
+    const innerR = () => base() * (small ? 0.15 : 0.12); // singularity radius
+    const ringR = () => base() * (small ? 0.2 : 0.165); // ring centreline
 
     const sprites = {
       cyan: glowSprite(CYAN),
       persimmon: glowSprite(PERSIMMON),
-      ember: glowSprite(EMBER),
     };
 
     const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
     const onMove = (e: MouseEvent) => {
-      mouse.tx = (e.clientX - window.innerWidth / 2) * 0.14;
-      mouse.ty = (e.clientY - window.innerHeight / 2) * 0.14;
+      mouse.tx = (e.clientX - window.innerWidth / 2) * 0.05;
+      mouse.ty = (e.clientY - window.innerHeight / 2) * 0.05;
     };
     window.addEventListener("mousemove", onMove, { passive: true });
     window.addEventListener("resize", resize);
 
-    const stars: Star[] = Array.from({ length: small ? 90 : 150 }, () => {
-      const r = Math.random();
-      return {
-        x: (Math.random() - 0.5) * W * 2,
-        y: (Math.random() - 0.5) * H * 2,
-        z: rand(200, 1200),
-        color: r > 0.86 ? PERSIMMON : r > 0.72 ? CYAN : "#dfe7f2",
-      };
-    });
+    const maxDist = Math.max(W, H) * 0.72;
+    const disk: Particle[] = Array.from(
+      { length: small ? 150 : 260 },
+      () => {
+        const distance =
+          Math.pow(Math.random(), 0.8) * (maxDist - innerR() * 1.5) +
+          innerR() * 1.5;
+        return {
+          angle: Math.random() * Math.PI * 2,
+          distance,
+          size: rand(0.5, 2.2),
+          z: rand(0.6, 2.2),
+          sprite: Math.random() > 0.42 ? sprites.cyan : sprites.persimmon,
+        };
+      },
+    );
 
-    const disk: Particle[] = Array.from({ length: small ? 130 : 240 }, () => {
-      const radius = Math.pow(Math.random(), 1.6) * (OUTER - INNER) + INNER;
-      const ratio = (radius - INNER) / (OUTER - INNER);
-      const sprite =
-        ratio < 0.28
-          ? sprites.cyan
-          : ratio < 0.72
-            ? sprites.persimmon
-            : sprites.ember;
-      return {
-        angle: Math.random() * Math.PI * 2,
-        radius,
-        speed: (rand(0.005, 0.02) * 120) / radius, // inner particles orbit faster
-        size: rand(0.6, 2.4),
-        alpha: rand(0.28, 0.8),
-        sprite,
-        s: 0,
-        c: 0,
-      };
-    });
+    const stars: Star[] = Array.from({ length: small ? 90 : 150 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      size: rand(0.3, 1.4),
+      a: Math.random(),
+      da: rand(0.004, 0.014),
+    }));
 
     let raf = 0;
     let running = true;
     let last = performance.now();
     let slowRun = 0;
     let downgraded = false;
+    let tick = 0;
 
     const frame = (now: number) => {
       if (!downgraded) {
@@ -146,96 +138,111 @@ export function BlackHoleBackground() {
         }
       }
       last = now;
+      tick++;
 
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = reduce ? BG : "rgba(11,15,25,0.34)"; // trail-clear → smoky drift
-      ctx.fillRect(0, 0, W, H);
+      // downgraded → render every other frame (~30fps) to ease the backdrop-blur
+      if (!downgraded || tick % 2 === 0) {
+        const cx = W / 2 + (mouse.x += (mouse.tx - mouse.x) * 0.05);
+        const cy = H / 2 + (mouse.y += (mouse.ty - mouse.y) * 0.05);
+        const inner = innerR();
+        const ring = ringR();
 
-      const cx = W / 2;
-      const cy = H / 2;
-      mouse.x += (mouse.tx - mouse.x) * 0.045;
-      mouse.y += (mouse.ty - mouse.y) * 0.045;
-      const bx = cx + mouse.x;
-      const by = cy + mouse.y;
-      const eh = Math.min(W, H) * 0.085;
-      const eh2 = eh * eh;
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = reduce ? BG : "rgba(11,15,25,0.3)"; // trail-clear → light trails
+        ctx.fillRect(0, 0, W, H);
 
-      // ── stars, bent by mock gravitational lensing ──────────────
-      for (const st of stars) {
-        if (!reduce) {
-          st.z -= 1.6;
-          if (st.z <= 1) {
-            st.z = 1200;
-            st.x = (Math.random() - 0.5) * W * 2;
-            st.y = (Math.random() - 0.5) * H * 2;
+        // ── stars: twinkle + gravitational pull ──
+        ctx.fillStyle = "#dbe6f5";
+        for (const s of stars) {
+          if (!reduce) {
+            s.a += s.da;
+            if (s.a > 1 || s.a < 0) s.da = -s.da;
           }
+          const dx = cx - s.x;
+          const dy = cy - s.y;
+          const d = Math.sqrt(dx * dx + dy * dy) || 1;
+          let px = s.x;
+          let py = s.y;
+          if (d > 40) {
+            const f = ((inner * 0.9) / d) * 2;
+            px += (dx / d) * f;
+            py += (dy / d) * f;
+          }
+          ctx.globalAlpha = Math.abs(s.a) * 0.55;
+          ctx.fillRect(px, py, s.size, s.size);
         }
-        let px = (st.x / st.z) * W + cx;
-        let py = (st.y / st.z) * H + cy;
-        const dx = px - bx;
-        const dy = py - by;
-        const dist = Math.sqrt(dx * dx + dy * dy) || 0.001;
-        if (dist > eh) {
-          const warp = eh2 / (dist * 0.9);
-          px += (dx / dist) * warp;
-          py += (dy / dist) * warp;
+
+        // ── accretion disk (blooms to the viewport edges), tilted ellipse ──
+        const ctil = Math.cos(TILT);
+        const stil = Math.sin(TILT);
+        for (const p of disk) {
+          if (!reduce) p.angle -= (0.0016 * 150) / p.distance; // outer = slower
+          const rx = Math.cos(p.angle) * p.distance;
+          const ry = Math.sin(p.angle) * p.distance * 0.22;
+          const x = cx + rx * ctil - ry * stil;
+          const y = cy + rx * stil + ry * ctil;
+          if (x < -30 || x > W + 30 || y < -30 || y > H + 30) continue;
+          const a = Math.min(0.85, p.distance / (inner * 1.6) - 0.12);
+          if (a <= 0) continue;
+          const dd = p.size * p.z * 5;
+          ctx.globalAlpha = a;
+          ctx.drawImage(p.sprite, x - dd / 2, y - dd / 2, dd, dd);
         }
-        if (px < -4 || px > W + 4 || py < -4 || py > H + 4) continue;
-        const sz = Math.max(1, (1300 / st.z) | 0);
-        ctx.globalAlpha = Math.min(1, (1200 - st.z) / 500) * 0.8;
-        ctx.fillStyle = st.color;
-        ctx.fillRect(px - sz / 2, py - sz / 2, sz, sz);
-      }
 
-      // ── accretion disk — split so it wraps around the void ─────
-      for (const p of disk) {
-        if (!reduce) p.angle += p.speed;
-        p.s = Math.sin(p.angle);
-        p.c = Math.cos(p.angle);
-      }
-      disk.sort((a, b) => a.s * a.radius - b.s * b.radius);
-
-      const blit = (p: Particle) => {
-        const d = p.size * 5;
-        ctx.globalAlpha = p.alpha;
-        ctx.drawImage(
-          p.sprite,
-          bx + p.c * p.radius - d / 2,
-          by + p.s * p.radius * TILT - d / 2,
-          d,
-          d,
+        // ── colossal halo bloom ──
+        ctx.globalAlpha = 1;
+        const haloR = ring + base() * 0.5;
+        const halo = ctx.createRadialGradient(
+          cx,
+          cy,
+          inner * 0.6,
+          cx,
+          cy,
+          haloR,
         );
-      };
+        halo.addColorStop(0, "rgba(0,240,255,0.5)");
+        halo.addColorStop(0.12, "rgba(0,240,255,0.26)");
+        halo.addColorStop(0.4, "rgba(255,107,53,0.12)");
+        halo.addColorStop(1, "rgba(11,15,25,0)");
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(cx, cy, haloR, 0, Math.PI * 2);
+        ctx.fill();
 
-      for (const p of disk) if (p.s < 0) blit(p); // far side
+        // ── solid blazing ring — tilted + flattened ──
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(TILT);
+        ctx.scale(1, 0.22);
+        const rg = ctx.createRadialGradient(0, 0, inner, 0, 0, ring * 1.4);
+        rg.addColorStop(0, "rgba(255,255,255,1)");
+        rg.addColorStop(0.16, "rgba(0,240,255,0.95)");
+        rg.addColorStop(0.55, "rgba(255,107,53,0.82)");
+        rg.addColorStop(1, "rgba(255,107,53,0)");
+        ctx.lineWidth = base() * 0.06;
+        ctx.strokeStyle = rg;
+        ctx.shadowBlur = 40;
+        ctx.shadowColor = CYAN;
+        ctx.beginPath();
+        ctx.arc(0, 0, ring, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+        ctx.shadowBlur = 0;
 
-      // ── singularity ──────────────────────────────────────────
-      ctx.globalAlpha = 1;
-      ctx.fillStyle = "#000000";
-      ctx.beginPath();
-      ctx.arc(bx, by, eh, 0, Math.PI * 2);
-      ctx.fill();
+        // ── the singularity ──
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = VOID;
+        ctx.beginPath();
+        ctx.arc(cx, cy, inner, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(0,240,255,0.35)";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.arc(cx, cy, inner, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
 
-      ctx.strokeStyle = CYAN; // Einstein ring
-      ctx.lineWidth = 2;
-      ctx.globalAlpha = 0.5;
-      ctx.beginPath();
-      ctx.arc(bx, by, eh + 0.5, 0, Math.PI * 2);
-      ctx.stroke();
-
-      const corona = ctx.createRadialGradient(bx, by, eh, bx, by, eh * 2.1);
-      corona.addColorStop(0, "rgba(0,240,255,0.22)");
-      corona.addColorStop(0.35, "rgba(255,107,53,0.1)");
-      corona.addColorStop(1, "rgba(11,15,25,0)");
-      ctx.globalAlpha = 0.9;
-      ctx.fillStyle = corona;
-      ctx.beginPath();
-      ctx.arc(bx, by, eh * 2.1, 0, Math.PI * 2);
-      ctx.fill();
-
-      for (const p of disk) if (p.s >= 0) blit(p); // near side
-
-      ctx.globalAlpha = 1;
       if (running && !reduce) raf = requestAnimationFrame(frame);
     };
 
@@ -264,6 +271,7 @@ export function BlackHoleBackground() {
     <canvas
       ref={canvasRef}
       aria-hidden
+      style={{ background: BG }}
       className="pointer-events-none fixed inset-0 -z-10 block h-full w-full"
     />
   );

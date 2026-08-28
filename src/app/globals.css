@@ -135,14 +135,18 @@
 }
 
 @layer components {
-  /* ── Reusable terminal panel frame ─────────────────────────── */
+  /* ── Reusable terminal panel frame — frosted obsidian glass ──── */
   .terminal-panel {
     position: relative;
     display: flex;
     flex-direction: column;
-    border: 1px solid var(--border);
+    border: 1px solid color-mix(in oklab, #fff 4.5%, transparent);
     border-radius: var(--radius);
-    background: var(--surface);
+    /* translucent so the black hole warps behind it */
+    background: color-mix(in oklab, var(--surface) 62%, transparent);
+    backdrop-filter: blur(18px) saturate(1.1);
+    -webkit-backdrop-filter: blur(18px) saturate(1.1);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45);
     transition:
       border-color 200ms ease,
       box-shadow 200ms ease;
@@ -157,8 +161,18 @@
   .terminal-panel:focus-within {
     border-color: var(--panel-tone);
     box-shadow:
+      0 8px 30px rgba(0, 0, 0, 0.45),
       0 0 0 1px var(--panel-tone),
       0 0 28px -10px var(--panel-tone);
+  }
+
+  /* Blur is GPU-costly over an animating canvas — drop it on coarse pointers. */
+  @media (hover: none) {
+    .terminal-panel {
+      background: color-mix(in oklab, var(--surface) 82%, transparent);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
   }
 
   /* ── Live-state animations ────────────────────────────────── */
