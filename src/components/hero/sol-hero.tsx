@@ -25,11 +25,18 @@ export function SolHero() {
         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Floating logo — no frame, no backdrop. sol-logo.png is the mark with
-          its baked-in black knocked out (luminance alpha), so its edges feather
-          straight into the background. */}
+      {/* Tight neon-blue core — makes the orb + metallic edges pop */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -z-10 size-[220px] rounded-full bg-[color-mix(in_oklab,var(--cyan)_16%,transparent)] blur-[64px] md:size-[340px]"
+      />
+
+      {/* Floating logo — lifted above the CRT scanlines (z-40) so the brand
+          mark stays 100% crisp. sol-logo.png is the mark with its baked-in
+          black knocked out (luminance alpha), so its edges feather straight
+          into the background. */}
       <motion.div
-        className="relative h-[214px] w-[330px] [filter:drop-shadow(0_0_24px_color-mix(in_oklab,var(--cyan)_28%,transparent))] sm:h-[292px] sm:w-[448px] md:h-[380px] md:w-[584px]"
+        className="relative z-40 h-[214px] w-[330px] [filter:drop-shadow(0_0_24px_color-mix(in_oklab,var(--cyan)_28%,transparent))] sm:h-[292px] sm:w-[448px] md:h-[380px] md:w-[584px]"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={
           reduce

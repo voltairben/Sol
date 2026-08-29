@@ -201,17 +201,23 @@
 }
 
 /* ── Full-screen CRT overlay ──────────────────────────────────
- * Applied to <body class="crt">. Fixed, click-through, above everything.
- * Horizontal scanlines + faint RGB sub-pixel stripes.
+ * Applied to <body class="crt">. Fixed, click-through. Sits above page
+ * content (z 30) but BELOW anything that opts out with a higher z-index —
+ * the hero logo (z 40) lifts clear so the brand mark stays crisp.
+ * Feathered scanlines + faint RGB sub-pixel stripes.
  */
 .crt::after {
   content: " ";
   position: fixed;
   inset: 0;
-  z-index: 9999;
+  z-index: 30;
   pointer-events: none;
   background:
-    linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.12) 50%),
+    linear-gradient(
+      rgba(0, 0, 0, 0) 20%,
+      rgba(0, 0, 0, 0.08) 50%,
+      rgba(0, 0, 0, 0) 80%
+    ),
     linear-gradient(
       90deg,
       rgba(255, 0, 0, 0.02),
@@ -287,7 +293,7 @@
 }
 
 .boot-reveal {
-  animation: boot-reveal 650ms ease-out;
+  animation: boot-reveal 450ms ease-out;
 }
 
 @keyframes scan-sweep {
