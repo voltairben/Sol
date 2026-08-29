@@ -55,8 +55,6 @@ const en = {
 
   return_to_deck: "return_to_deck",
   photo_alt: "SOL_DNB in the studio",
-  h_profile: "profile",
-  h_broadcasts: "broadcasts",
 
   autherr_kicker: "auth error",
   autherr_title: "Sign-in didn't complete",
@@ -115,8 +113,6 @@ const nl: Dict = {
 
   return_to_deck: "terug_naar_deck",
   photo_alt: "SOL_DNB in de studio",
-  h_profile: "profiel",
-  h_broadcasts: "uitzendingen",
 
   autherr_kicker: "auth-fout",
   autherr_title: "Inloggen is niet voltooid",

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { BackdropScrim } from "@/components/layout/backdrop-scrim";
 import { BackLink } from "@/components/layout/back-link";
 import { ViewTabs } from "@/components/layout/view-tabs";
-import { PageHeading } from "@/components/layout/page-heading";
 import { ScheduleCard } from "@/components/control/schedule-card";
 
 export const metadata: Metadata = {
@@ -20,7 +19,14 @@ export default function SchedulePage() {
         <ViewTabs active="schedule" />
       </div>
 
-      <PageHeading variant="schedule" />
+      <header className="flex flex-col gap-1">
+        <span className="font-departure text-[0.55rem] uppercase tracking-[0.25em] text-[var(--persimmon)]">
+          [ transmission_log ]
+        </span>
+        <h1 className="font-departure text-lg uppercase tracking-[0.2em] text-[var(--text)] md:text-xl">
+          broadcast // schedule
+        </h1>
+      </header>
 
       <ScheduleCard />
     </div>
