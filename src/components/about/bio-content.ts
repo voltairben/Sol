@@ -19,7 +19,7 @@ export const BIO_EN: Bio = {
       code: "01_THE_JOURNEY",
       status: "STABLE",
       tone: "persimmon",
-      body: "It started around ten years ago, when Sol first got his hands on DJ equipment. A decade of steady focus followed — a record crate built one find at a time, mixing technique sharpened week after week, a proper rig assembled piece by piece. His first booking came eight years ago in the south of the Netherlands, and the pull of playing to a room has never let up.",
+      body: "It started a long time ago, when Sol first got his hands on DJ equipment. Years of steady focus followed — a record crate built one find at a time, mixing technique sharpened week after week, a proper rig assembled piece by piece. His first booking came eight years ago in the south of the Netherlands, and the pull of playing to a room has never let up.",
     },
     {
       code: "02_THE_STREAM_LINKUP",
@@ -48,7 +48,7 @@ export const BIO_NL: Bio = {
       code: "01_THE_JOURNEY",
       status: "STABLE",
       tone: "persimmon",
-      body: "Het begon zo'n tien jaar geleden, toen Sol voor het eerst achter dj-apparatuur stond. Een decennium van gestage focus volgde — een platenbak die plaat voor plaat groeide, mixtechniek die week na week scherper werd, een volwaardige set-up stukje bij beetje opgebouwd. Zijn eerste boeking kwam acht jaar geleden in het zuiden van Nederland, en de trek om voor een zaal te spelen is nooit meer weggegaan.",
+      body: "Het begon een hele tijd geleden, toen Sol voor het eerst achter dj-apparatuur stond. Jarenlange gestage focus volgde — een platenbak die plaat voor plaat groeide, mixtechniek die week na week scherper werd, een volwaardige set-up stukje bij beetje opgebouwd. Zijn eerste boeking kwam acht jaar geleden in het zuiden van Nederland, en de trek om voor een zaal te spelen is nooit meer weggegaan.",
     },
     {
       code: "02_THE_STREAM_LINKUP",

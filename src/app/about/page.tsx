@@ -14,11 +14,22 @@ export const metadata: Metadata = {
     "From club circuits across the south of the Netherlands to a vinyl-driven livestream — the story of SOL_DNB.",
 };
 
+const RIG = [
+  "Pioneer XDJ-XZ",
+  "2× Audio-Technica AT-LP140XP",
+  "Pioneer CDJ-2000 NXS",
+];
+
 const SPECS = [
   {
-    label: "rig_hardware",
-    value: "Technics 1210 MK7 turntables",
-    sub: "+ Pioneer DJ mixer",
+    label: "cartridges",
+    value: "Ortofon Concorde MkII",
+    sub: "on the AT-LP140XP decks",
+  },
+  {
+    label: "capture",
+    value: "DJI Osmo Action 4",
+    sub: "stream webcam",
   },
   {
     label: "signal_spectrum",
@@ -59,6 +70,22 @@ export default function AboutPage() {
               [ console_telemetry_specs ]
             </p>
             <dl className="flex flex-col gap-3 text-[0.62rem]">
+              <div className="flex flex-col gap-1">
+                <dt className="font-departure uppercase tracking-[0.14em] text-[var(--text-dim)]">
+                  rig_hardware:
+                </dt>
+                <dd>
+                  <ul className="flex flex-col gap-0.5 font-bold text-[var(--text)]">
+                    {RIG.map((item) => (
+                      <li key={item} className="flex gap-1.5">
+                        <span className="text-[var(--persimmon)]">›</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+                </dd>
+              </div>
+
               {SPECS.map((s) => (
                 <div key={s.label} className="flex flex-col gap-0.5">
                   <dt className="font-departure uppercase tracking-[0.14em] text-[var(--text-dim)]">
