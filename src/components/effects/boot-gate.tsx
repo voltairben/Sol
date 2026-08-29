@@ -3,13 +3,17 @@
 import { useState, useSyncExternalStore } from "react";
 import { TerminalPreloader } from "./terminal-preloader";
 
-const KEY = "sol:booted";
 const noop = () => () => {};
 
-/** First visit of the session, motion allowed → play the boot screen. */
+// Reset on every full page load; survives client-side navigation within the
+// same runtime. So the boot screen plays on refresh / direct visit, but not
+// when you click back to "/" from another page.
+let bootedThisLoad = false;
+
+/** Fresh page load, motion allowed → play the boot screen. */
 function shouldBoot(): boolean {
   try {
-    if (sessionStorage.getItem(KEY) === "1") return false;
+    if (bootedThisLoad) return false;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches)
       return false;
     return true;
@@ -19,8 +23,8 @@ function shouldBoot(): boolean {
 }
 
 /**
- * Wraps the homepage. Plays the terminal boot screen once per browser session
- * on the first visit; skipped on repeat navigation and under reduced motion.
+ * Wraps the homepage. Plays the terminal boot screen on each full page load,
+ * skipped on client-side navigation back to "/" and under reduced motion.
  * Content is always rendered underneath — the preloader is an opaque overlay —
  * so SSR / no-JS still get the full page.
  */
@@ -30,11 +34,7 @@ export function BootGate({ children }: { children: React.ReactNode }) {
   const show = wantsBoot && !dismissed;
 
   const finish = () => {
-    try {
-      sessionStorage.setItem(KEY, "1");
-    } catch {
-      /* ignore */
-    }
+    bootedThisLoad = true;
     setDismissed(true);
   };
 
