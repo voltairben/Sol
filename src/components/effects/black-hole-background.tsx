@@ -11,6 +11,8 @@ void main() {
 }`;
 
 // Numerical geodesic raymarcher in the Schwarzschild metric.
+// Scroll drives the camera height + look-at so the event horizon sinks and
+// tilts into the screen as the page scrolls.
 const FRAG = `#version 300 es
 precision highp float;
 
@@ -20,12 +22,13 @@ out vec4 fragColor;
 uniform vec2 u_resolution;
 uniform float u_time;
 uniform vec2 u_mouse;
+uniform float u_scroll;
 uniform float u_narrow;
 
 #define PI 3.14159265359
 
-const vec3 colorPersimmon = vec3(1.0, 0.42, 0.21); // #FF6B35
-const vec3 colorNeonBlue  = vec3(0.0, 0.94, 1.0);  // #00F0FF
+vec3 colorPersimmon = vec3(1.0, 0.42, 0.21);
+vec3 colorNeonBlue  = vec3(0.0, 0.94, 1.0);
 
 float hash21(vec2 p) {
   p = fract(p * vec2(234.34, 435.345));
@@ -78,15 +81,19 @@ void main() {
   aspectUV.x *= u_resolution.x / u_resolution.y;
 
   float zCam = 18.0;
-  vec3 ro = vec3(0.0, 2.5, zCam);
-  ro.xz = rot(ro.xz, u_mouse.x * 0.2);
-  ro.yz = rot(ro.yz, u_mouse.y * 0.15);
+  float baseHeight = 2.4;
+  float scrollFactor = u_scroll * 1.8;
+  vec3 ro = vec3(0.0, baseHeight - scrollFactor, zCam);
 
-  vec3 ww = normalize(vec3(0.0) - ro);
+  ro.xz = rot(ro.xz, u_mouse.x * 0.18);
+  ro.yz = rot(ro.yz, clamp(u_mouse.y * 0.12 - u_scroll * 0.08, -0.15, 0.15));
+
+  vec3 lookAt = vec3(0.0, -u_scroll * 0.5, 0.0);
+  vec3 ww = normalize(lookAt - ro);
   vec3 uu = normalize(cross(ww, vec3(0.0, 1.0, 0.0)));
   vec3 vv = normalize(cross(uu, ww));
 
-  float fov = u_narrow > 0.5 ? 1.0 : 1.35;
+  float fov = u_narrow > 0.5 ? 0.95 : 1.35;
   vec3 rd = normalize(aspectUV.x * uu + aspectUV.y * vv + fov * ww);
 
   float r_s = 1.0;
@@ -104,15 +111,21 @@ void main() {
   float sPrev = x.y;
   vec3 xPrev = x;
 
-  int steps = u_narrow > 0.5 ? 84 : 140;
+  int steps = u_narrow > 0.5 ? 95 : 175;
 
   for (int i = 0; i < steps; i++) {
     float r2 = dot(x, x);
     if (r2 < r_s * 1.002) { captured = true; break; }
-    if (r2 > zCam * zCam * 2.5) break;
+    if (r2 > zCam * zCam * 2.8) break;
 
     float r = sqrt(r2);
-    float dt = clamp(0.12 * r, 0.04, 1.4);
+
+    // Adaptive proximity speed limiter — keeps the near-disk loops concentric.
+    float distToDiskPlane = abs(x.y);
+    float dt = clamp(0.12 * r, 0.04, 1.35);
+    if (r >= r_in && r <= r_out * 1.4) {
+      dt = min(dt, max(0.015, distToDiskPlane * 0.45));
+    }
 
     vec3 a = -1.5 * h2 * x / (r2 * r2 * r);
     v += a * (0.5 * dt);
@@ -129,7 +142,7 @@ void main() {
       float rc = length(xc);
 
       if (rc >= r_in && rc <= r_out) {
-        float band = smoothstep(r_in, r_in * 1.15, rc) * (1.0 - smoothstep(r_out * 0.75, r_out, rc));
+        float band = smoothstep(r_in, r_in * 1.15, rc) * (1.0 - smoothstep(r_out * 0.8, r_out, rc));
 
         float phi = atan(xc.z, xc.x);
         float turns = phi / (2.0 * PI);
@@ -149,12 +162,12 @@ void main() {
         float baseTemp = 6500.0;
         vec3 cbb = blackbody(baseTemp * tProfile * g);
 
-        vec3 diskColor = mix(colorPersimmon, colorNeonBlue, clamp((g - 0.7) * 1.5, 0.0, 1.0));
-        diskColor *= mix(vec3(1.2), cbb, 0.55); // temper blackbody so the brand hue reads
+        vec3 diskColor = mix(colorPersimmon, colorNeonBlue, clamp((g - 0.75) * 1.6, 0.0, 1.0));
+        diskColor *= mix(vec3(1.2), cbb, 0.55);
 
         float boost = pow(g, 3.2);
         float density = band * streaks;
-        emitc += trans * diskColor * (2.7 * density * tProfile * tProfile * boost);
+        emitc += trans * diskColor * (3.4 * density * tProfile * tProfile * boost);
         trans *= 1.0 - clamp(0.85 * density, 0.0, 1.0);
       }
     }
@@ -168,20 +181,21 @@ void main() {
   vec3 col = bg * trans + (vec3(1.0) - exp(-emitc * 1.05));
 
   vec2 uvDist = v_uv - 0.5;
-  col *= 1.0 - 0.28 * dot(uvDist, uvDist);
+  col *= 1.0 - 0.26 * dot(uvDist, uvDist);
 
   fragColor = vec4(col, 1.0);
 }`;
 
 /**
  * WebGL2 raymarched Schwarzschild black hole — geodesic photon tracing for real
- * gravitational lensing, an Interstellar-style double-arc disk, and relativistic
- * doppler beaming. Adaptive resolution keeps it near 60fps, pauses when hidden,
- * renders one static frame under prefers-reduced-motion. Solid #0B0F19 if WebGL2
- * is unavailable.
+ * gravitational lensing, an Interstellar-style double-arc disk, doppler beaming,
+ * and a scroll-linked camera that sinks toward the disk plane as the page
+ * scrolls. Adaptive resolution keeps it near 60fps, pauses when hidden, renders
+ * one static frame under prefers-reduced-motion (scroll parallax disabled).
+ * Solid #0B0F19 if WebGL2 is unavailable.
  *
- * ponytail: a full-screen raymarcher behind 8 backdrop-blur panels is a real GPU
- * load — the adaptive res scaler is the safety valve; drop step count / kill the
+ * ponytail: a full-screen raymarcher behind translucent panels is a real GPU
+ * load — the adaptive res scaler is the safety valve; drop `steps` / kill the
  * panel blur if profiles on low-end hardware still stutter.
  */
 export function BlackHoleBackground() {
@@ -241,14 +255,20 @@ export function BlackHoleBackground() {
     const uRes = gl.getUniformLocation(prog, "u_resolution");
     const uTime = gl.getUniformLocation(prog, "u_time");
     const uMouse = gl.getUniformLocation(prog, "u_mouse");
+    const uScroll = gl.getUniformLocation(prog, "u_scroll");
     const uNarrow = gl.getUniformLocation(prog, "u_narrow");
 
     const baseDpr = Math.min(window.devicePixelRatio || 1, 1.5);
     let narrow = window.innerWidth < 768;
-    let scale = narrow ? 0.72 : 0.92;
+    let scale = narrow ? 0.7 : 0.9;
+    let maxScroll = 1;
 
     const resize = () => {
       narrow = window.innerWidth < 768;
+      maxScroll = Math.max(
+        1,
+        document.documentElement.scrollHeight - window.innerHeight,
+      );
       canvas.width = Math.max(2, Math.round(window.innerWidth * baseDpr * scale));
       canvas.height = Math.max(
         2,
@@ -266,6 +286,15 @@ export function BlackHoleBackground() {
     };
     window.addEventListener("mousemove", onMove, { passive: true });
 
+    const scroll = { y: 0, ty: 0 };
+    const onScroll = () => {
+      scroll.ty = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+    };
+    if (!reduce) {
+      onScroll();
+      window.addEventListener("scroll", onScroll, { passive: true });
+    }
+
     const t0 = performance.now();
     let raf = 0;
     let running = true;
@@ -278,18 +307,20 @@ export function BlackHoleBackground() {
       // adaptive resolution — sustained slow frames shrink the render target
       if (dt > 20) slow++;
       else slow = Math.max(0, slow - 2);
-      if (slow > 28 && scale > 0.45) {
-        scale = Math.max(0.45, scale - 0.13);
+      if (slow > 28 && scale > 0.4) {
+        scale = Math.max(0.4, scale - 0.13);
         slow = 0;
         resize();
       }
 
       mouse.x += (mouse.tx - mouse.x) * 0.04;
       mouse.y += (mouse.ty - mouse.y) * 0.04;
+      scroll.y += (scroll.ty - scroll.y) * 0.06;
 
       gl.uniform2f(uRes, canvas.width, canvas.height);
       gl.uniform1f(uTime, (now - t0) * 0.001);
       gl.uniform2f(uMouse, mouse.x, mouse.y);
+      gl.uniform1f(uScroll, scroll.y);
       gl.uniform1f(uNarrow, narrow ? 1 : 0);
       gl.drawArrays(gl.TRIANGLES, 0, 6);
 
@@ -312,6 +343,7 @@ export function BlackHoleBackground() {
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("scroll", onScroll);
       document.removeEventListener("visibilitychange", onVisibility);
       gl.deleteProgram(prog);
       gl.deleteBuffer(buf);
@@ -324,7 +356,7 @@ export function BlackHoleBackground() {
     <canvas
       ref={canvasRef}
       aria-hidden
-      style={{ background: "#0B0F19", filter: "contrast(1.05) saturate(1.08)" }}
+      style={{ background: "#0B0F19", filter: "contrast(1.05) saturate(1.1)" }}
       className="pointer-events-none fixed inset-0 -z-10 block h-full w-full"
     />
   );
