@@ -46,14 +46,18 @@ export async function POST(request: Request) {
     }
   }
 
+  const from =
+    process.env.RESEND_FROM?.trim() || "SOL_DNB <onboarding@resend.dev>";
+
   const { error } = await resend.emails.send({
-    from: process.env.RESEND_FROM ?? "SOL_DNB <onboarding@resend.dev>",
+    from,
     to: email,
     subject: "[SOL_PORTAL] CONNECTION_ESTABLISHED",
     text: "Access granted. You are now on the list for SOL_DNB go-live notifications and vinyl-set drops.",
   });
 
   if (error) {
+    console.error("resend send failed:", error.message);
     return NextResponse.json({ code: "failed" }, { status: 502 });
   }
 
