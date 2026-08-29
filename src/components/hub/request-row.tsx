@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import type { TrackRequestView } from "@/types/database";
@@ -10,12 +11,14 @@ export function RequestRow({
   canVote,
   busy,
   onUpvote,
+  onGate,
 }: {
   rank: number;
   request: TrackRequestView;
   canVote: boolean;
   busy: boolean;
   onUpvote: (r: TrackRequestView) => void;
+  onGate: () => void;
 }) {
   const t = useT();
   const playing = request.status === "playing";
@@ -33,14 +36,26 @@ export function RequestRow({
         {String(rank).padStart(2, "0")}
       </span>
 
-      <div className="min-w-0 flex-1 self-center">
-        <p className="truncate text-[0.85rem] text-[var(--text)]">
-          {request.title}
-        </p>
-        <p className="truncate text-[0.72rem] text-[var(--text-dim)]">
-          {request.artist}
-          {request.requester_name ? ` · ${request.requester_name}` : ""}
-        </p>
+      <div className="flex min-w-0 flex-1 items-center gap-2">
+        {request.avatar_url && (
+          <Image
+            src={request.avatar_url}
+            alt=""
+            width={24}
+            height={24}
+            unoptimized
+            className="size-6 shrink-0 rounded-full border border-[var(--border)] object-cover"
+          />
+        )}
+        <div className="min-w-0">
+          <p className="truncate text-[0.85rem] text-[var(--text)]">
+            {request.title}
+          </p>
+          <p className="truncate text-[0.72rem] text-[var(--text-dim)]">
+            {request.artist}
+            {request.requester_name ? ` · ${request.requester_name}` : ""}
+          </p>
+        </div>
       </div>
 
       {playing && (
@@ -51,20 +66,16 @@ export function RequestRow({
 
       <button
         type="button"
-        onClick={() => onUpvote(request)}
-        disabled={busy || !canVote}
+        onClick={() => (canVote ? onUpvote(request) : onGate())}
+        disabled={busy}
         aria-pressed={request.has_voted}
         title={canVote ? t.upvote : t.signin_to_vote}
         className={cn(
           "flex w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-[2px] border font-departure text-[0.7rem] transition-all",
           request.has_voted
             ? "border-[var(--persimmon)] text-[var(--persimmon)]"
-            : "border-[var(--border)] text-[var(--text-dim)]",
-          canVote &&
-            !request.has_voted &&
-            "hover:border-[var(--cyan)] hover:text-[var(--cyan)]",
-          !canVote && "cursor-not-allowed opacity-50",
-          busy && "animate-pulse",
+            : "border-[var(--border)] text-[var(--text-dim)] hover:border-[var(--cyan)] hover:text-[var(--cyan)]",
+          busy && "animate-pulse opacity-60",
         )}
       >
         <span aria-hidden>▲</span>

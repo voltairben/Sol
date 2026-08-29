@@ -16,6 +16,8 @@ interface SessionValue {
   userId: string | null;
   /** Display name from the OAuth provider (Twitch/Discord), best effort. */
   displayName: string | null;
+  /** Provider avatar URL, best effort. */
+  avatarUrl: string | null;
   loading: boolean;
 }
 
@@ -23,6 +25,7 @@ const SessionContext = createContext<SessionValue>({
   session: null,
   userId: null,
   displayName: null,
+  avatarUrl: null,
   loading: true,
 });
 
@@ -41,6 +44,12 @@ function nameFrom(session: Session | null): string | null {
     session?.user?.email ??
     null
   );
+}
+
+function avatarFrom(session: Session | null): string | null {
+  const m = (session?.user?.user_metadata ?? {}) as Record<string, unknown>;
+  const url = m.avatar_url ?? m.picture;
+  return typeof url === "string" && url.startsWith("https://") ? url : null;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -73,6 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       session,
       userId: session?.user?.id ?? null,
       displayName: nameFrom(session),
+      avatarUrl: avatarFrom(session),
       loading,
     }),
     [session, loading],

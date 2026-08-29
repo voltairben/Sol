@@ -4,7 +4,13 @@ import { useActionState, useEffect, useRef } from "react";
 import { useT } from "@/lib/i18n";
 import { submitRequest } from "./actions";
 
-export function RequestForm() {
+export function RequestForm({
+  authed,
+  onGate,
+}: {
+  authed: boolean;
+  onGate: () => void;
+}) {
   const t = useT();
   const [state, action, pending] = useActionState(submitRequest, null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -26,6 +32,12 @@ export function RequestForm() {
     <form
       ref={formRef}
       action={action}
+      onSubmit={(e) => {
+        if (!authed) {
+          e.preventDefault();
+          onGate();
+        }
+      }}
       className="flex flex-col gap-2 rounded-[2px] border border-[var(--border)] p-3"
     >
       <p className="font-departure text-[0.62rem] uppercase tracking-[0.2em] text-[var(--cyan)]">
@@ -35,14 +47,14 @@ export function RequestForm() {
         <input
           name="artist"
           placeholder={t.ph_artist}
-          required
+          required={authed}
           maxLength={200}
           className="min-w-0 flex-1 rounded-[2px] border border-[var(--border)] bg-[var(--bg)] px-2 py-1.5 text-[0.8rem] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] focus:border-[var(--cyan)]"
         />
         <input
           name="title"
           placeholder={t.ph_track}
-          required
+          required={authed}
           maxLength={200}
           className="min-w-0 flex-1 rounded-[2px] border border-[var(--border)] bg-[var(--bg)] px-2 py-1.5 text-[0.8rem] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] focus:border-[var(--cyan)]"
         />

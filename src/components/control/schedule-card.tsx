@@ -9,6 +9,7 @@ export async function ScheduleCard() {
     .from("schedule")
     .select("*")
     .eq("is_active", true)
+    .order("is_live", { ascending: false })
     .order("sort_order", { ascending: true })
     .order("created_at", { ascending: true });
 

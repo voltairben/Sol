@@ -17,9 +17,7 @@ const en = {
   live_now: "live now",
   live_sub: "broadcast in progress — tune in",
 
-  console_locked: "console locked",
-  checking_session: "checking session…",
-  auth_prompt: "auth to open a request or upvote the queue.",
+  gate_prompt: "Sign in to suggest a track or upvote the queue.",
   queue_empty: "queue empty",
   empty_locked: "no requests yet — sign in to be the first.",
   empty_open: "no requests yet — open one above.",
@@ -37,7 +35,7 @@ const en = {
 
   ph_email: "enter email",
   email_label: "email address",
-  newsletter_ok: "ACCESS GRANTED. VERIFY INBOX_",
+  newsletter_ok: "[ ACCESS_GRANTED. CHECK INBOX. ]",
   err_sub_invalid: "invalid request",
   err_sub_email: "enter a valid email",
   err_sub_unconfigured: "signup is not wired up yet",
@@ -46,6 +44,7 @@ const en = {
 
   sched_empty: "no transmissions logged on the grid.",
   sched_empty_sub: "check back soon, or join the Discord for go-live pings.",
+  sched_live: "live now",
   sched_tz: "all times CET (europe/amsterdam) unless noted",
 
   pt_waveform: "active output waveform",
@@ -78,9 +77,7 @@ const nl: Dict = {
   live_now: "nu live",
   live_sub: "uitzending bezig — kijk mee",
 
-  console_locked: "console vergrendeld",
-  checking_session: "sessie controleren…",
-  auth_prompt: "log in om een verzoek te openen of te stemmen.",
+  gate_prompt: "Log in om een nummer voor te stellen of te stemmen.",
   queue_empty: "wachtrij leeg",
   empty_locked: "nog geen verzoeken — log in om de eerste te zijn.",
   empty_open: "nog geen verzoeken — open er hierboven een.",
@@ -98,7 +95,7 @@ const nl: Dict = {
 
   ph_email: "voer e-mail in",
   email_label: "e-mailadres",
-  newsletter_ok: "TOEGANG VERLEEND. CHECK INBOX_",
+  newsletter_ok: "[ TOEGANG_VERLEEND. CHECK INBOX. ]",
   err_sub_invalid: "ongeldig verzoek",
   err_sub_email: "voer een geldig e-mailadres in",
   err_sub_unconfigured: "aanmelden is nog niet gekoppeld",
@@ -107,6 +104,7 @@ const nl: Dict = {
 
   sched_empty: "nog geen uitzendingen op de grid.",
   sched_empty_sub: "check later terug, of join de Discord voor go-live pings.",
+  sched_live: "nu live",
   sched_tz: "alle tijden CET (europe/amsterdam) tenzij anders vermeld",
 
   pt_waveform: "actief uitgangssignaal",

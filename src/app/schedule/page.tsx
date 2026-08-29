@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function SchedulePage() {
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-8 px-4 pt-8 pb-16 sm:px-6">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 pt-8 pb-16">
       <BackdropScrim />
       <BackLink />
 

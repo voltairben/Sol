@@ -2,6 +2,7 @@
 
 import { LiveBanner } from "@/components/stream/live-banner";
 import { useT } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 import type { ScheduleEvent } from "@/types/database";
 
 export function ScheduleView({ events }: { events: ScheduleEvent[] }) {
@@ -25,16 +26,33 @@ export function ScheduleView({ events }: { events: ScheduleEvent[] }) {
           {events.map((e) => (
             <li
               key={e.id}
-              className="group relative overflow-hidden rounded-[3px] border border-[var(--border)] bg-[color-mix(in_oklab,var(--surface)_60%,transparent)] p-5 pl-6 transition-colors hover:border-[color-mix(in_oklab,var(--persimmon)_55%,transparent)]"
+              className={cn(
+                "group relative overflow-hidden rounded-[3px] border bg-[color-mix(in_oklab,var(--surface)_60%,transparent)] p-5 pl-6 transition-colors",
+                e.is_live
+                  ? "border-[color-mix(in_oklab,var(--persimmon)_60%,transparent)]"
+                  : "border-[var(--border)] hover:border-[color-mix(in_oklab,var(--persimmon)_55%,transparent)]",
+              )}
             >
               <span
                 aria-hidden
-                className="absolute inset-y-0 left-0 w-1 bg-[var(--border)] transition-colors group-hover:bg-[var(--persimmon)]"
+                className={cn(
+                  "absolute inset-y-0 left-0 w-1",
+                  e.is_live
+                    ? "live-bar"
+                    : "bg-[var(--border)] transition-colors group-hover:bg-[var(--persimmon)]",
+                )}
               />
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex min-w-0 flex-col gap-2">
-                  <span className="w-fit rounded-[2px] border border-[color-mix(in_oklab,var(--persimmon)_25%,transparent)] bg-[color-mix(in_oklab,var(--persimmon)_10%,transparent)] px-2 py-0.5 font-departure text-[0.52rem] uppercase tracking-[0.16em] text-[var(--persimmon)]">
-                    {e.location}
+                  <span className="flex flex-wrap items-center gap-2">
+                    {e.is_live && (
+                      <span className="animate-onair rounded-[2px] border border-[var(--persimmon)] px-2 py-0.5 font-departure text-[0.52rem] uppercase tracking-[0.18em] text-[var(--persimmon)]">
+                        ● {t.sched_live}
+                      </span>
+                    )}
+                    <span className="w-fit rounded-[2px] border border-[color-mix(in_oklab,var(--persimmon)_25%,transparent)] bg-[color-mix(in_oklab,var(--persimmon)_10%,transparent)] px-2 py-0.5 font-departure text-[0.52rem] uppercase tracking-[0.16em] text-[var(--persimmon)]">
+                      {e.location}
+                    </span>
                   </span>
                   <h3 className="font-departure text-[0.95rem] uppercase tracking-[0.08em] text-[var(--text)]">
                     {e.title}

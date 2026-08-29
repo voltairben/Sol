@@ -17,11 +17,16 @@ export function DecryptText({
   durationMs?: number;
 }) {
   const reduce = useReducedMotion();
+  // Always redacted for SSR + the first client render (keeps hydration stable);
+  // the effect resolves it — instantly under reduced motion, animated otherwise.
   const [animated, setAnimated] = useState(() => redact(text));
   const raf = useRef(0);
 
   useEffect(() => {
-    if (reduce) return;
+    if (reduce) {
+      const id = requestAnimationFrame(() => setAnimated(text));
+      return () => cancelAnimationFrame(id);
+    }
     const start = performance.now();
     const step = (now: number) => {
       const progress = Math.min(1, (now - start) / durationMs);
@@ -43,7 +48,7 @@ export function DecryptText({
 
   return (
     <span className={className} aria-label={text}>
-      <span aria-hidden>{reduce ? text : animated}</span>
+      <span aria-hidden>{animated}</span>
     </span>
   );
 }

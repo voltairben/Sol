@@ -187,6 +187,12 @@
     animation: vu ease-in-out infinite;
   }
 
+  /* ── /schedule: pulsing accent bar on the LIVE event ──────── */
+  .live-bar {
+    background: var(--persimmon);
+    animation: live-pulse 1.6s ease-in-out infinite;
+  }
+
   /* ── About: console-analyzer photo sweep ──────────────────── */
   .scan-line {
     position: absolute;
@@ -296,6 +302,18 @@
   animation: boot-reveal 450ms ease-out;
 }
 
+@keyframes live-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px 0 var(--persimmon);
+    opacity: 0.85;
+  }
+  50% {
+    box-shadow: 0 0 18px 3px var(--persimmon);
+    opacity: 1;
+  }
+}
+
 @keyframes scan-sweep {
   0% {
     top: 0;
@@ -318,8 +336,12 @@
   .vapor-text,
   .vu-bar,
   .scan-line,
-  .boot-reveal {
+  .boot-reveal,
+  .live-bar {
     animation: none !important;
+  }
+  .live-bar {
+    box-shadow: 0 0 10px 1px var(--persimmon);
   }
   .scan-line {
     display: none;

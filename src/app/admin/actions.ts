@@ -190,6 +190,36 @@ export async function toggleScheduleEvent(
   return { ok: true };
 }
 
+/** Flag the currently-running broadcast. Clears the flag on every other row. */
+export async function setScheduleEventLive(
+  id: string,
+  isLive: boolean,
+): Promise<AdminResult> {
+  const denied = await assertAdmin();
+  if (denied) return denied;
+  if (!isUuid(id)) return { ok: false, error: "bad request" };
+
+  const db = createAdminClient();
+  // one LIVE row at a time — clear the rest first
+  if (isLive) {
+    const { error: clearErr } = await db
+      .from("schedule")
+      .update({ is_live: false })
+      .neq("id", id);
+    if (clearErr) return { ok: false, error: clearErr.message };
+  }
+
+  const { error } = await db
+    .from("schedule")
+    .update({ is_live: Boolean(isLive) })
+    .eq("id", id);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/admin");
+  revalidatePath("/schedule");
+  return { ok: true };
+}
+
 // ── Track request queue ──────────────────────────────────────────
 
 /**

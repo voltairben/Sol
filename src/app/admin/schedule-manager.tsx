@@ -8,6 +8,7 @@ import {
   saveScheduleEvent,
   deleteScheduleEvent,
   toggleScheduleEvent,
+  setScheduleEventLive,
   reorderScheduleEvent,
 } from "./actions";
 
@@ -226,6 +227,24 @@ export function ScheduleManager({
               </div>
 
               <div className="flex shrink-0 flex-col gap-1 font-departure text-[0.52rem] uppercase tracking-[0.1em]">
+                <button
+                  type="button"
+                  onClick={() =>
+                    run(
+                      () => setScheduleEventLive(evt.id, !evt.is_live),
+                      evt.is_live ? "LIVE_ENDED" : "MARKED_LIVE",
+                    )
+                  }
+                  disabled={busy}
+                  className={cn(
+                    "rounded-[2px] border px-1.5 py-1 transition-colors disabled:opacity-50",
+                    evt.is_live
+                      ? "border-[var(--persimmon)] bg-[color-mix(in_oklab,var(--persimmon)_18%,transparent)] text-[var(--persimmon)]"
+                      : "border-[var(--border)] text-[var(--text-dim)] hover:border-[var(--persimmon)] hover:text-[var(--persimmon)]",
+                  )}
+                >
+                  {evt.is_live ? "● end" : "go live"}
+                </button>
                 <button
                   type="button"
                   onClick={() => startEdit(evt)}

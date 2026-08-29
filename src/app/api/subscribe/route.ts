@@ -29,11 +29,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ code: "unconfigured" }, { status: 503 });
   }
 
-  const { error } = await getResend().emails.send({
+  const resend = getResend();
+  const { email } = parsed.data;
+
+  // Add to Sol's audience (list) when one is configured. A duplicate is fine —
+  // don't fail the request over it.
+  const audienceId = process.env.RESEND_AUDIENCE_ID;
+  if (audienceId) {
+    const { error: contactErr } = await resend.contacts.create({
+      email,
+      audienceId,
+      unsubscribed: false,
+    });
+    if (contactErr && !/exist/i.test(contactErr.message)) {
+      console.warn("resend contact:", contactErr.message);
+    }
+  }
+
+  const { error } = await resend.emails.send({
     from: process.env.RESEND_FROM ?? "SOL_DNB <onboarding@resend.dev>",
-    to: parsed.data.email,
+    to: email,
     subject: "[SOL_PORTAL] CONNECTION_ESTABLISHED",
-    text: "Access granted. You are now registered to receive Sol live notifications and custom vinyl-set drops.",
+    text: "Access granted. You are now on the list for SOL_DNB go-live notifications and vinyl-set drops.",
   });
 
   if (error) {

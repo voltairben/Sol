@@ -18,6 +18,13 @@ function displayNameFrom(meta: Record<string, unknown> | undefined): string {
   ).slice(0, 120);
 }
 
+function avatarFrom(meta: Record<string, unknown> | undefined): string | null {
+  const url = (meta ?? {}).avatar_url ?? (meta ?? {}).picture;
+  return typeof url === "string" && url.startsWith("https://")
+    ? url.slice(0, 500)
+    : null;
+}
+
 /** Submit a new track request as the signed-in user. */
 export async function submitRequest(
   _prev: ActionResult | null,
@@ -40,6 +47,7 @@ export async function submitRequest(
   const { error } = await supabase.from("track_requests").insert({
     user_id: user.id,
     requester_name: displayNameFrom(user.user_metadata),
+    avatar_url: avatarFrom(user.user_metadata),
     artist: parsed.data.artist,
     title: parsed.data.title,
   });

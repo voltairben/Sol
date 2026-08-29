@@ -19,6 +19,7 @@ export interface ScheduleEvent {
   location: string;
   details: string | null;
   is_active: boolean;
+  is_live: boolean;
   sort_order: number;
   created_at: string;
 }
@@ -29,6 +30,7 @@ export interface TrackRequest {
   id: string;
   user_id: string;
   requester_name: string;
+  avatar_url: string | null;
   title: string;
   artist: string;
   status: RequestStatus;

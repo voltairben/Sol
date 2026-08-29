@@ -11,9 +11,10 @@ import {
   type ChangeEvent,
 } from "@/lib/hub/requests";
 import type { TrackRequest, TrackRequestView, Upvote } from "@/types/database";
+import { GateDialog } from "@/components/auth/gate-dialog";
 import { RequestRow } from "./request-row";
 import { RequestForm } from "./request-form";
-import { BoardEmpty, ConsoleLocked } from "./request-board-states";
+import { BoardEmpty } from "./request-board-states";
 import { toggleUpvote } from "./actions";
 
 type RowMap = Map<string, TrackRequestView>;
@@ -26,13 +27,14 @@ export function RequestBoardClient({
   initialRequests: TrackRequestView[];
   initialUserId: string | null;
 }) {
-  const { userId: sessionUserId, loading: authLoading } = useSession();
+  const { userId: sessionUserId } = useSession();
   const userId = sessionUserId ?? initialUserId;
 
   const [rows, setRows] = useState<RowMap>(
     () => new Map(initialRequests.map((r) => [r.id, r])),
   );
   const [status, setStatus] = useState<ConnStatus>("connecting");
+  const [gateOpen, setGateOpen] = useState(false);
 
   // in-flight optimistic vote deltas, keyed by trackId
   const [pending, setPending] = useState<Map<string, 1 | -1>>(new Map());
@@ -119,6 +121,8 @@ export function RequestBoardClient({
   const statusLabel =
     status === "live" ? "● live" : status === "offline" ? "○ offline" : "…";
 
+  const openGate = useCallback(() => setGateOpen(true), []);
+
   return (
     <TerminalPanel
       label="track.requests"
@@ -127,7 +131,7 @@ export function RequestBoardClient({
       interactive
       bodyClassName="flex flex-col gap-3 p-6"
     >
-      {userId ? <RequestForm /> : <ConsoleLocked loading={authLoading} />}
+      <RequestForm authed={Boolean(userId)} onGate={openGate} />
 
       {view.length === 0 ? (
         <BoardEmpty locked={!userId} />
@@ -141,10 +145,13 @@ export function RequestBoardClient({
               canVote={Boolean(userId)}
               busy={pending.has(r.id)}
               onUpvote={onUpvote}
+              onGate={openGate}
             />
           ))}
         </ul>
       )}
+
+      <GateDialog open={gateOpen} onClose={() => setGateOpen(false)} />
     </TerminalPanel>
   );
 }
