@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { markBootComplete } from "@/lib/boot-signal";
 
 interface Particle {
   angle: number;
@@ -39,22 +40,26 @@ export function TerminalPreloader({ onComplete }: { onComplete: () => void }) {
     BOOT_STAGES.length - 1,
   );
 
-  // ── progress simulation ───────────────────────────────────────
+  // ── progress simulation (~0.6s to full) ───────────────────────
   useEffect(() => {
     const id = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) return 100;
-        return Math.min(prev + Math.floor(Math.random() * 8) + 2, 100);
+        return Math.min(prev + Math.floor(Math.random() * 10) + 9, 100);
       });
-    }, 120);
+    }, 70);
     return () => clearInterval(id);
   }, []);
 
-  // ── hand off once the bar fills ───────────────────────────────
+  // ── hand off once the bar fills (~1.4s total) ─────────────────
   useEffect(() => {
     if (progress < 100) return;
-    const hold = window.setTimeout(() => setFading(true), 300);
-    const done = window.setTimeout(onComplete, 900);
+    const hold = window.setTimeout(() => {
+      setFading(true);
+      // let the WebGL background compile + warm up behind the fade
+      markBootComplete();
+    }, 180);
+    const done = window.setTimeout(onComplete, 680);
     return () => {
       clearTimeout(hold);
       clearTimeout(done);
@@ -160,7 +165,7 @@ export function TerminalPreloader({ onComplete }: { onComplete: () => void }) {
       role="status"
       aria-live="polite"
       aria-label="Loading SOL_DNB"
-      className={`fixed inset-0 z-50 flex select-none flex-col items-center justify-center bg-[#0B0F19] font-mono transition-all duration-700 ${
+      className={`fixed inset-0 z-50 flex select-none flex-col items-center justify-center bg-[#0B0F19] font-mono transition-all duration-500 ${
         fading ? "pointer-events-none scale-105 opacity-0" : "scale-100 opacity-100"
       }`}
     >

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import { whenBootComplete } from "@/lib/boot-signal";
 
 const VERT = `#version 300 es
 in vec2 position;
@@ -204,151 +205,169 @@ export function BlackHoleBackground() {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const gl = canvas.getContext("webgl2", {
-      antialias: false,
-      powerPreference: "low-power",
-      alpha: false,
-    });
-    if (!gl) return;
 
-    const reduce = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
+    let teardown: (() => void) | null = null;
 
-    const compile = (src: string, type: number) => {
-      const sh = gl.createShader(type)!;
-      gl.shaderSource(sh, src);
-      gl.compileShader(sh);
-      if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
-        console.error("shader:", gl.getShaderInfoLog(sh));
-        gl.deleteShader(sh);
-        return null;
+    // Deferred until the boot preloader is on its way out, so a page load
+    // isn't hit with both GPU workloads at once. Runs immediately on routes
+    // where no preloader shows.
+    const startEngine = () => {
+      const gl = canvas.getContext("webgl2", {
+        antialias: false,
+        powerPreference: "low-power",
+        alpha: false,
+      });
+      if (!gl) return;
+
+      const reduce = window.matchMedia(
+        "(prefers-reduced-motion: reduce)",
+      ).matches;
+
+      const compile = (src: string, type: number) => {
+        const sh = gl.createShader(type)!;
+        gl.shaderSource(sh, src);
+        gl.compileShader(sh);
+        if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) {
+          console.error("shader:", gl.getShaderInfoLog(sh));
+          gl.deleteShader(sh);
+          return null;
+        }
+        return sh;
+      };
+
+      const vs = compile(VERT, gl.VERTEX_SHADER);
+      const fs = compile(FRAG, gl.FRAGMENT_SHADER);
+      if (!vs || !fs) return;
+
+      const prog = gl.createProgram()!;
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        console.error("link:", gl.getProgramInfoLog(prog));
+        return;
       }
-      return sh;
-    };
+      gl.useProgram(prog);
 
-    const vs = compile(VERT, gl.VERTEX_SHADER);
-    const fs = compile(FRAG, gl.FRAGMENT_SHADER);
-    if (!vs || !fs) return;
-
-    const prog = gl.createProgram()!;
-    gl.attachShader(prog, vs);
-    gl.attachShader(prog, fs);
-    gl.linkProgram(prog);
-    if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-      console.error("link:", gl.getProgramInfoLog(prog));
-      return;
-    }
-    gl.useProgram(prog);
-
-    const buf = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-    gl.bufferData(
-      gl.ARRAY_BUFFER,
-      new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-      gl.STATIC_DRAW,
-    );
-    const posLoc = gl.getAttribLocation(prog, "position");
-    gl.enableVertexAttribArray(posLoc);
-    gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
-
-    const uRes = gl.getUniformLocation(prog, "u_resolution");
-    const uTime = gl.getUniformLocation(prog, "u_time");
-    const uMouse = gl.getUniformLocation(prog, "u_mouse");
-    const uScroll = gl.getUniformLocation(prog, "u_scroll");
-    const uNarrow = gl.getUniformLocation(prog, "u_narrow");
-
-    const baseDpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    let narrow = window.innerWidth < 768;
-    let scale = narrow ? 0.7 : 0.9;
-    let maxScroll = 1;
-
-    const resize = () => {
-      narrow = window.innerWidth < 768;
-      maxScroll = Math.max(
-        1,
-        document.documentElement.scrollHeight - window.innerHeight,
+      const buf = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+      gl.bufferData(
+        gl.ARRAY_BUFFER,
+        new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+        gl.STATIC_DRAW,
       );
-      canvas.width = Math.max(2, Math.round(window.innerWidth * baseDpr * scale));
-      canvas.height = Math.max(
-        2,
-        Math.round(window.innerHeight * baseDpr * scale),
-      );
-      gl.viewport(0, 0, canvas.width, canvas.height);
-    };
-    resize();
-    window.addEventListener("resize", resize);
+      const posLoc = gl.getAttribLocation(prog, "position");
+      gl.enableVertexAttribArray(posLoc);
+      gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
 
-    const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
-    const onMove = (e: MouseEvent) => {
-      mouse.tx = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.ty = 1 - (e.clientY / window.innerHeight) * 2;
-    };
-    window.addEventListener("mousemove", onMove, { passive: true });
+      const uRes = gl.getUniformLocation(prog, "u_resolution");
+      const uTime = gl.getUniformLocation(prog, "u_time");
+      const uMouse = gl.getUniformLocation(prog, "u_mouse");
+      const uScroll = gl.getUniformLocation(prog, "u_scroll");
+      const uNarrow = gl.getUniformLocation(prog, "u_narrow");
 
-    const scroll = { y: 0, ty: 0 };
-    const onScroll = () => {
-      scroll.ty = Math.min(1, Math.max(0, window.scrollY / maxScroll));
-    };
-    if (!reduce) {
-      onScroll();
-      window.addEventListener("scroll", onScroll, { passive: true });
-    }
+      const baseDpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      let narrow = window.innerWidth < 768;
+      let scale = narrow ? 0.7 : 0.9;
+      let maxScroll = 1;
 
-    const t0 = performance.now();
-    let raf = 0;
-    let running = true;
-    let last = t0;
-    let slow = 0;
+      const resize = () => {
+        narrow = window.innerWidth < 768;
+        maxScroll = Math.max(
+          1,
+          document.documentElement.scrollHeight - window.innerHeight,
+        );
+        canvas.width = Math.max(
+          2,
+          Math.round(window.innerWidth * baseDpr * scale),
+        );
+        canvas.height = Math.max(
+          2,
+          Math.round(window.innerHeight * baseDpr * scale),
+        );
+        gl.viewport(0, 0, canvas.width, canvas.height);
+      };
+      resize();
+      window.addEventListener("resize", resize);
 
-    const render = (now: number) => {
-      const dt = now - last;
-      last = now;
-      // adaptive resolution — sustained slow frames shrink the render target
-      if (dt > 20) slow++;
-      else slow = Math.max(0, slow - 2);
-      if (slow > 28 && scale > 0.4) {
-        scale = Math.max(0.4, scale - 0.13);
-        slow = 0;
-        resize();
+      const mouse = { x: 0, y: 0, tx: 0, ty: 0 };
+      const onMove = (e: MouseEvent) => {
+        mouse.tx = (e.clientX / window.innerWidth) * 2 - 1;
+        mouse.ty = 1 - (e.clientY / window.innerHeight) * 2;
+      };
+      window.addEventListener("mousemove", onMove, { passive: true });
+
+      const scroll = { y: 0, ty: 0 };
+      const onScroll = () => {
+        scroll.ty = Math.min(1, Math.max(0, window.scrollY / maxScroll));
+      };
+      if (!reduce) {
+        onScroll();
+        window.addEventListener("scroll", onScroll, { passive: true });
       }
 
-      mouse.x += (mouse.tx - mouse.x) * 0.04;
-      mouse.y += (mouse.ty - mouse.y) * 0.04;
-      scroll.y += (scroll.ty - scroll.y) * 0.06;
+      const t0 = performance.now();
+      let raf = 0;
+      let running = true;
+      let last = t0;
+      let slow = 0;
 
-      gl.uniform2f(uRes, canvas.width, canvas.height);
-      gl.uniform1f(uTime, (now - t0) * 0.001);
-      gl.uniform2f(uMouse, mouse.x, mouse.y);
-      gl.uniform1f(uScroll, scroll.y);
-      gl.uniform1f(uNarrow, narrow ? 1 : 0);
-      gl.drawArrays(gl.TRIANGLES, 0, 6);
+      const render = (now: number) => {
+        const dt = now - last;
+        last = now;
+        // adaptive resolution — sustained slow frames shrink the render target
+        if (dt > 20) slow++;
+        else slow = Math.max(0, slow - 2);
+        if (slow > 28 && scale > 0.4) {
+          scale = Math.max(0.4, scale - 0.13);
+          slow = 0;
+          resize();
+        }
 
-      if (running && !reduce) raf = requestAnimationFrame(render);
-    };
-    raf = requestAnimationFrame(render);
+        mouse.x += (mouse.tx - mouse.x) * 0.04;
+        mouse.y += (mouse.ty - mouse.y) * 0.04;
+        scroll.y += (scroll.ty - scroll.y) * 0.06;
 
-    const onVisibility = () => {
-      running = !document.hidden;
-      if (running && !reduce) {
+        gl.uniform2f(uRes, canvas.width, canvas.height);
+        gl.uniform1f(uTime, (now - t0) * 0.001);
+        gl.uniform2f(uMouse, mouse.x, mouse.y);
+        gl.uniform1f(uScroll, scroll.y);
+        gl.uniform1f(uNarrow, narrow ? 1 : 0);
+        gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+        if (running && !reduce) raf = requestAnimationFrame(render);
+      };
+      raf = requestAnimationFrame(render);
+
+      const onVisibility = () => {
+        running = !document.hidden;
+        if (running && !reduce) {
+          cancelAnimationFrame(raf);
+          last = performance.now();
+          raf = requestAnimationFrame(render);
+        }
+      };
+      document.addEventListener("visibilitychange", onVisibility);
+
+      teardown = () => {
+        running = false;
         cancelAnimationFrame(raf);
-        last = performance.now();
-        raf = requestAnimationFrame(render);
-      }
+        window.removeEventListener("resize", resize);
+        window.removeEventListener("mousemove", onMove);
+        window.removeEventListener("scroll", onScroll);
+        document.removeEventListener("visibilitychange", onVisibility);
+        gl.deleteProgram(prog);
+        gl.deleteBuffer(buf);
+        gl.deleteShader(vs);
+        gl.deleteShader(fs);
+      };
     };
-    document.addEventListener("visibilitychange", onVisibility);
+
+    const cancelWait = whenBootComplete(startEngine);
 
     return () => {
-      running = false;
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("scroll", onScroll);
-      document.removeEventListener("visibilitychange", onVisibility);
-      gl.deleteProgram(prog);
-      gl.deleteBuffer(buf);
-      gl.deleteShader(vs);
-      gl.deleteShader(fs);
+      cancelWait();
+      teardown?.();
     };
   }, []);
 
