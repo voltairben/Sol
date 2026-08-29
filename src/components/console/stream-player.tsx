@@ -2,9 +2,9 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
+import { LiveBanner } from "@/components/stream/live-banner";
 import { KickEmbed } from "./kick-embed";
 import { TwitchEmbed } from "./twitch-embed";
-import { StreamDiagnostics } from "./stream-diagnostics";
 
 type Platform = "kick" | "twitch";
 const KEY = "sol:player";
@@ -57,7 +57,7 @@ export function StreamPlayer() {
         {platform === "kick" ? <KickEmbed /> : <TwitchEmbed />}
       </div>
 
-      <StreamDiagnostics />
+      <LiveBanner />
     </div>
   );
 }

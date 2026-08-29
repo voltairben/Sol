@@ -7,7 +7,7 @@ requests in realtime, and see when a broadcast goes live — no page refresh.
 ## Stack
 
 Next.js 16 (App Router) · Tailwind v4 · Supabase (Postgres + Realtime + Auth) ·
-iron-session · Resend · `motion` · `three` / `@react-three/fiber`
+iron-session · Resend · `motion` · Web Audio API
 
 ## Local dev
 

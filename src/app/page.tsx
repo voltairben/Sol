@@ -2,92 +2,50 @@ import { TerminalPanel } from "@/components/ui/terminal-panel";
 import { SolHero } from "@/components/hero/sol-hero";
 import { StreamPlayer } from "@/components/console/stream-player";
 import { RequestBoard } from "@/components/hub/request-board";
-import { ScheduleCard } from "@/components/control/schedule-card";
-import { Sol3DVisualAnchor } from "@/components/control/sol-3d-visual-anchor";
+import { PlaytoolGadget } from "@/components/control/playtool-gadget";
 import { NewsletterForm } from "@/components/newsletter/newsletter-form";
 import { SocialLinks } from "@/components/links/social-links";
 
-/** Placeholder for sections not yet built (about.deck). */
-function Wire({ lines = 3, label }: { lines?: number; label?: string }) {
-  return (
-    <div className="flex flex-col gap-2">
-      {label && (
-        <p className="font-departure text-[0.62rem] uppercase tracking-[0.2em] text-[var(--text-dim)]">
-          {label}
-        </p>
-      )}
-      {Array.from({ length: lines }).map((_, i) => (
-        <div
-          key={i}
-          className="h-2 rounded-[2px] bg-[color-mix(in_oklab,var(--text-dim)_24%,var(--surface))]"
-          style={{ width: `${92 - i * 11}%` }}
-        />
-      ))}
-    </div>
-  );
-}
-
+/**
+ * The deck — a single cinematic vertical flow: the logo, the stream front and
+ * centre, then the controls stacked beneath it like a cockpit.
+ */
 export default function Home() {
   return (
-    <div className="mx-auto flex min-h-full w-full max-w-[1600px] flex-col gap-4 border-t border-[var(--border)] px-4 pt-4 pb-6 sm:px-6">
-      {/*
-       * The deck: hero spans the top; below it three independent column stacks.
-       * Columns are separate flex stacks so panel heights never bleed across
-       * columns. Mobile collapses to one column, ordered hero → console/about
-       * → requests → schedule/3d/links.
-       */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.1fr_1fr_0.9fr] lg:items-start">
-        {/* Hero — frameless, floats over the background */}
-        <div className="lg:col-span-3">
-          <SolHero />
-        </div>
+    <div className="mx-auto flex w-full max-w-[1600px] flex-col items-center gap-12 border-t border-[var(--border)] px-4 pt-6 pb-16 sm:px-6">
+      <SolHero />
 
-        {/* LEFT — the console */}
-        <div className="order-2 flex flex-col gap-4 lg:order-none">
-          <TerminalPanel
-            label="stream.console"
-            status="[_] [口] [x]"
-            interactive
-          >
-            <StreamPlayer />
-          </TerminalPanel>
+      {/* Stream — the immediate focal point */}
+      <section className="w-full max-w-5xl">
+        <TerminalPanel
+          label="stream.console"
+          status="[_] [口] [x]"
+          interactive
+          className="shadow-[0_0_50px_rgba(0,240,255,0.15)]"
+        >
+          <StreamPlayer />
+        </TerminalPanel>
+      </section>
 
-          <TerminalPanel label="about.deck">
-            <Wire
-              label="netherlands → digital stream specialist"
-              lines={5}
-            />
-          </TerminalPanel>
-        </div>
+      {/* Track requests — the dashboard controller docked under the feed */}
+      <section className="w-full max-w-3xl">
+        <RequestBoard />
+      </section>
 
-        {/* CENTER — the engagement hub */}
-        <div className="order-3 flex flex-col gap-4 lg:order-none">
-          <RequestBoard />
-        </div>
+      {/* Playtool — the interactive synth deck */}
+      <section className="w-full">
+        <PlaytoolGadget />
+      </section>
 
-        {/* RIGHT — the control board */}
-        <div className="order-4 flex flex-col gap-4 lg:order-none">
-          <ScheduleCard />
-
-          <TerminalPanel
-            label="sol.3d_visual_anchor"
-            status="core_midi"
-            tone="persimmon"
-            bodyClassName="p-3"
-          >
-            <Sol3DVisualAnchor />
-          </TerminalPanel>
-
-          <TerminalPanel label="links.socials" interactive>
-            <div className="flex flex-col gap-3">
-              <SocialLinks />
-              <div className="border-t border-[var(--border)] pt-3">
-                <NewsletterForm />
-              </div>
-            </div>
-          </TerminalPanel>
-        </div>
-      </div>
+      {/* Channels + signal list */}
+      <section className="w-full max-w-4xl">
+        <TerminalPanel label="links.socials" interactive bodyClassName="flex flex-col gap-5 p-5 sm:p-6">
+          <SocialLinks size="large" />
+          <div className="border-t border-[var(--border)] pt-4">
+            <NewsletterForm />
+          </div>
+        </TerminalPanel>
+      </section>
     </div>
   );
 }

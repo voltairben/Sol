@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { TerminalPanel } from "@/components/ui/terminal-panel";
 import { formatSlot, scheduleWindowStart } from "@/lib/schedule";
 import type { StreamSlot } from "@/types/database";
-import { ScheduleLiveBanner } from "./schedule-live-banner";
+import { LiveBanner } from "@/components/stream/live-banner";
 
 export async function ScheduleCard() {
   const supabase = await createClient();
@@ -18,7 +18,7 @@ export async function ScheduleCard() {
   return (
     <TerminalPanel label="broadcast.schedule" status="next up" tone="persimmon">
       <div className="flex flex-col gap-3">
-        <ScheduleLiveBanner />
+        <LiveBanner />
 
         {slots.length === 0 ? (
           <p className="text-[0.75rem] text-[var(--text-dim)]">

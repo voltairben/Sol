@@ -1,118 +1,130 @@
 /**
- * Native Web Audio synth — three DnB-flavoured one-shot voices, no assets.
- * `createSynth()` is inert until `play()` (which needs a user gesture to
- * create / resume the AudioContext).
+ * Native Web Audio synth voices — four DnB-flavoured one-shots, no assets.
+ * Each `trigger` builds its graph from the passed `ctx` and connects to `dest`
+ * (an AnalyserNode in the Playtool, so the oscilloscope sees the output).
+ * The caller owns the AudioContext and its lifecycle / user-gesture resume.
  */
 
-export type SynthPreset = "sub" | "rise" | "ping";
+export type SynthShape = "circle" | "hexagon" | "triangle" | "vector-grid";
+export type SynthTone = "cyan" | "persimmon";
 
-export const SYNTH_PRESETS: { id: SynthPreset; label: string }[] = [
-  { id: "sub", label: "01_SUB_DROP" },
-  { id: "rise", label: "02_CYBER_RISE" },
-  { id: "ping", label: "03_PING_ALERT" },
-];
-
-type AudioCtor = typeof AudioContext;
-
-export function createSynth() {
-  let ctx: AudioContext | null = null;
-  let master: GainNode | null = null;
-
-  function ensure(): AudioContext {
-    if (!ctx) {
-      const AC: AudioCtor =
-        window.AudioContext ??
-        (window as unknown as { webkitAudioContext: AudioCtor })
-          .webkitAudioContext;
-      ctx = new AC();
-      master = ctx.createGain();
-      master.gain.value = 0.5;
-      master.connect(ctx.destination);
-    }
-    if (ctx.state === "suspended") void ctx.resume();
-    return ctx;
-  }
-
-  function play(preset: SynthPreset) {
-    const ac = ensure();
-    const out = master!;
-    const t = ac.currentTime;
-
-    if (preset === "sub") {
-      // sine 55Hz (low A) → lowpass sweep 150→40Hz, exp gain decay to ~0 over 1s
-      const osc = ac.createOscillator();
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(55, t);
-
-      const lp = ac.createBiquadFilter();
-      lp.type = "lowpass";
-      lp.frequency.setValueAtTime(150, t);
-      lp.frequency.linearRampToValueAtTime(40, t + 0.8);
-
-      const g = ac.createGain();
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.95, t + 0.03);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.0);
-
-      osc.connect(lp).connect(g).connect(out);
-      osc.start(t);
-      osc.stop(t + 1.1);
-      return;
-    }
-
-    if (preset === "rise") {
-      // saw 110→440Hz over 1.2s + a decaying feedback delay for spacey echoes
-      const osc = ac.createOscillator();
-      osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(110, t);
-      osc.frequency.linearRampToValueAtTime(440, t + 1.2);
-
-      const g = ac.createGain();
-      g.gain.setValueAtTime(0.0001, t);
-      g.gain.linearRampToValueAtTime(0.26, t + 0.4);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
-
-      const delay = ac.createDelay(0.5);
-      delay.delayTime.value = 0.17;
-      const fb = ac.createGain();
-      fb.gain.setValueAtTime(0.34, t);
-      fb.gain.linearRampToValueAtTime(0, t + 2.4); // kill the loop so nodes free
-      const wet = ac.createGain();
-      wet.gain.value = 0.4;
-
-      osc.connect(g);
-      g.connect(out);
-      g.connect(delay);
-      delay.connect(fb).connect(delay);
-      delay.connect(wet).connect(out);
-
-      osc.start(t);
-      osc.stop(t + 1.5);
-      return;
-    }
-
-    // ping: triangle 880Hz chirp, exp decay over 0.15s
-    const osc = ac.createOscillator();
-    osc.type = "triangle";
-    osc.frequency.setValueAtTime(880, t);
-
-    const g = ac.createGain();
-    g.gain.setValueAtTime(0.35, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.15);
-
-    osc.connect(g).connect(out);
-    osc.start(t);
-    osc.stop(t + 0.18);
-  }
-
-  return {
-    play,
-    dispose() {
-      void ctx?.close();
-      ctx = null;
-      master = null;
-    },
-  };
+export interface SynthVoice {
+  id: string;
+  label: string;
+  description: string;
+  shape: SynthShape;
+  tone: SynthTone;
+  trigger: (ctx: AudioContext, dest: AudioNode) => void;
 }
 
-export type Synth = ReturnType<typeof createSynth>;
+export const SYNTH_VOICES: SynthVoice[] = [
+  {
+    id: "sub_drop",
+    label: "SUB-BASS DROP",
+    description: "Deep 80→30Hz sub rumble",
+    shape: "circle",
+    tone: "cyan",
+    trigger: (ctx, dest) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(dest);
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(80, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 1.2);
+
+      gain.gain.setValueAtTime(0.8, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 1.6);
+    },
+  },
+  {
+    id: "wobble",
+    label: "D&B WOBBLE",
+    description: "LFO-modulated heavy square",
+    shape: "hexagon",
+    tone: "persimmon",
+    trigger: (ctx, dest) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+
+      osc.connect(gain);
+      gain.connect(dest);
+
+      osc.type = "square";
+      osc.frequency.setValueAtTime(65, ctx.currentTime);
+
+      lfo.type = "sine";
+      lfo.frequency.setValueAtTime(6.5, ctx.currentTime); // 6.5 Hz wobble
+      lfoGain.gain.setValueAtTime(25, ctx.currentTime);
+      lfo.connect(lfoGain);
+      lfoGain.connect(osc.frequency);
+
+      gain.gain.setValueAtTime(0.6, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.0);
+
+      lfo.start();
+      osc.start();
+      lfo.stop(ctx.currentTime + 1.1);
+      osc.stop(ctx.currentTime + 1.1);
+    },
+  },
+  {
+    id: "sweep",
+    label: "FILTER SWEEP",
+    description: "Sawtooth bandpass sweep",
+    shape: "triangle",
+    tone: "cyan",
+    trigger: (ctx, dest) => {
+      const osc = ctx.createOscillator();
+      const filter = ctx.createBiquadFilter();
+      const gain = ctx.createGain();
+
+      osc.connect(filter);
+      filter.connect(gain);
+      gain.connect(dest);
+
+      osc.type = "sawtooth";
+      osc.frequency.setValueAtTime(110, ctx.currentTime);
+
+      filter.type = "bandpass";
+      filter.frequency.setValueAtTime(200, ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + 0.8);
+      filter.Q.setValueAtTime(5, ctx.currentTime);
+
+      gain.gain.setValueAtTime(0.5, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.9);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 1.0);
+    },
+  },
+  {
+    id: "riser",
+    label: "STELLAR RISER",
+    description: "Ascending cosmic sweep",
+    shape: "vector-grid",
+    tone: "persimmon",
+    trigger: (ctx, dest) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(dest);
+
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(150, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1800, ctx.currentTime + 1.5);
+
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.6);
+
+      osc.start();
+      osc.stop(ctx.currentTime + 1.7);
+    },
+  },
+];

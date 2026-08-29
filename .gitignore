@@ -47,3 +47,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local source drop for the profile photo (served copy lives in public/)
+/SolProfileImage/

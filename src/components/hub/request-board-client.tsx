@@ -125,7 +125,7 @@ export function RequestBoardClient({
       status={statusLabel}
       tone="cyan"
       interactive
-      bodyClassName="flex flex-col gap-3 lg:min-h-[520px]"
+      bodyClassName="flex flex-col gap-3"
     >
       {userId ? <RequestForm /> : <ConsoleLocked loading={authLoading} />}
 

@@ -186,6 +186,18 @@
     height: 15%;
     animation: vu ease-in-out infinite;
   }
+
+  /* ── About: console-analyzer photo sweep ──────────────────── */
+  .scan-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 2px;
+    background: color-mix(in oklab, var(--cyan) 85%, transparent);
+    box-shadow: 0 0 14px 1px var(--cyan);
+    animation: scan-sweep 4.5s linear infinite;
+  }
 }
 
 /* ── Full-screen CRT overlay ──────────────────────────────────
@@ -263,13 +275,32 @@
   }
 }
 
+@keyframes scan-sweep {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  8%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-onair,
   .animate-live,
   .animate-pulse,
   .vapor-text,
-  .vu-bar {
+  .vu-bar,
+  .scan-line {
     animation: none !important;
+  }
+  .scan-line {
+    display: none;
   }
   .vu-bar {
     height: 40%;
