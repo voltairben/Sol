@@ -13,7 +13,7 @@ export const BRAND_ICONS: Record<string, (p: IconProps) => ReactElement> = {
   kick: (p) =>
     Svg(
       p,
-      "M3.246 2.4H8.46v3.477H5.854v12.246H8.46v3.477H3.246V2.4zm10.428 6.954h2.607v5.292h-2.607V9.354zm2.607-3.477h2.606v3.477h-2.606V5.877zm0 8.769h2.606v3.477h-2.606v-3.477zm2.606-5.292h2.607v5.292h-2.607V9.354z",
+      "M1.333 0h8v5.333H12V2.667h2.667V0h8v8H20v2.667h-2.667v2.666H20V16h2.667v8h-8v-2.667H12v-2.666H9.333V24h-8Z",
     ),
   twitch: (p) =>
     Svg(
