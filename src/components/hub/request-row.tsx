@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import type { TrackRequestView } from "@/types/database";
 
 export function RequestRow({
@@ -16,6 +17,7 @@ export function RequestRow({
   busy: boolean;
   onUpvote: (r: TrackRequestView) => void;
 }) {
+  const t = useT();
   const playing = request.status === "playing";
   const played = request.status === "played";
 
@@ -42,8 +44,8 @@ export function RequestRow({
       </div>
 
       {playing && (
-        <span className="self-center font-departure text-[0.58rem] uppercase tracking-[0.15em] text-[var(--cyan)]">
-          on&nbsp;deck
+        <span className="self-center whitespace-nowrap font-departure text-[0.58rem] uppercase tracking-[0.15em] text-[var(--cyan)]">
+          {t.on_deck}
         </span>
       )}
 
@@ -52,7 +54,7 @@ export function RequestRow({
         onClick={() => onUpvote(request)}
         disabled={busy || !canVote}
         aria-pressed={request.has_voted}
-        title={canVote ? "Upvote" : "Sign in to vote"}
+        title={canVote ? t.upvote : t.signin_to_vote}
         className={cn(
           "flex w-11 shrink-0 flex-col items-center justify-center gap-0.5 rounded-[2px] border font-departure text-[0.7rem] transition-all",
           request.has_voted

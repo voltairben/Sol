@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useStreamState } from "./stream-state-provider";
+import { useT } from "@/lib/i18n";
 
 function elapsed(iso: string | null, nowMs: number): string | null {
   if (!iso) return null;
@@ -20,6 +21,7 @@ function elapsed(iso: string | null, nowMs: number): string | null {
  */
 export function LiveBanner() {
   const { isLive, liveSince } = useStreamState();
+  const t = useT();
   const [nowMs, setNowMs] = useState(0);
 
   useEffect(() => {
@@ -34,16 +36,14 @@ export function LiveBanner() {
   return (
     <div className="animate-live rounded-[2px] border-2 border-[var(--cyan)] bg-[color-mix(in_oklab,var(--cyan)_10%,transparent)] p-3 text-center shadow-[0_0_28px_-6px_var(--cyan)]">
       <p className="font-departure text-sm uppercase tracking-[0.32em] text-[var(--cyan)]">
-        ● live now
+        ● {t.live_now}
         {clock && (
           <span className="ml-2 font-mono tracking-[0.1em] tabular-nums">
             {clock}
           </span>
         )}
       </p>
-      <p className="mt-0.5 text-[0.7rem] text-[var(--text-dim)]">
-        broadcast in progress — tune in
-      </p>
+      <p className="mt-0.5 text-[0.7rem] text-[var(--text-dim)]">{t.live_sub}</p>
     </div>
   );
 }

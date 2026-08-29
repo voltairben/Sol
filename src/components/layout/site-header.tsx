@@ -1,11 +1,7 @@
 import Link from "next/link";
 import { OnAirChip } from "./on-air-chip";
+import { HeaderNav } from "./header-nav";
 import { LangToggle } from "@/components/i18n/lang-toggle";
-
-const NAV = [
-  { href: "/schedule", label: "schedule" },
-  { href: "/about", label: "about" },
-];
 
 export function SiteHeader() {
   return (
@@ -20,17 +16,7 @@ export function SiteHeader() {
           </span>
         </Link>
 
-        <nav className="flex items-center gap-5">
-          {NAV.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="font-departure text-[0.8rem] uppercase tracking-[0.16em] text-[var(--text-dim)] transition-colors hover:text-[var(--cyan)] focus-visible:text-[var(--cyan)] focus-visible:outline-none"
-            >
-              [ {item.label} ]
-            </Link>
-          ))}
-        </nav>
+        <HeaderNav />
 
         <div className="ml-auto flex items-center gap-4">
           <LangToggle />

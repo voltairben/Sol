@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { StreamStateProvider } from "@/components/stream/stream-state-provider";
 import { SiteHeader } from "@/components/layout/site-header";
+import { HtmlLangSync } from "@/components/i18n/html-lang-sync";
 import { BlackHoleBackground } from "@/components/effects/black-hole-background";
 import "./globals.css";
 
@@ -36,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="crt min-h-full">
         <BlackHoleBackground />
+        <HtmlLangSync />
         <AuthProvider>
           <StreamStateProvider>
             <SiteHeader />

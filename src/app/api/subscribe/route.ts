@@ -14,22 +14,19 @@ export async function POST(request: Request) {
   try {
     raw = await request.json();
   } catch {
-    return NextResponse.json({ error: "invalid request" }, { status: 400 });
+    return NextResponse.json({ code: "invalid" }, { status: 400 });
   }
 
   const parsed = Body.safeParse(raw);
   if (!parsed.success) {
-    return NextResponse.json({ error: "enter a valid email" }, { status: 400 });
+    return NextResponse.json({ code: "email" }, { status: 400 });
   }
 
   // Honeypot filled → pretend it worked, do nothing.
   if (parsed.data.company) return NextResponse.json({ ok: true });
 
   if (!process.env.RESEND_API_KEY) {
-    return NextResponse.json(
-      { error: "signup is not wired up yet" },
-      { status: 503 },
-    );
+    return NextResponse.json({ code: "unconfigured" }, { status: 503 });
   }
 
   const { error } = await getResend().emails.send({
@@ -40,10 +37,7 @@ export async function POST(request: Request) {
   });
 
   if (error) {
-    return NextResponse.json(
-      { error: error.message ?? "send failed" },
-      { status: 502 },
-    );
+    return NextResponse.json({ code: "failed" }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true });

@@ -1,11 +1,13 @@
 "use client";
 
 import { useStreamState } from "@/components/stream/stream-state-provider";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 /** Header status chip — pulses neon-blue while the broadcast is live. */
 export function OnAirChip() {
   const { isLive } = useStreamState();
+  const t = useT();
 
   return (
     <span
@@ -24,7 +26,7 @@ export function OnAirChip() {
           isLive ? "bg-[var(--cyan)]" : "bg-[var(--text-dim)]",
         )}
       />
-      {isLive ? "on air" : "off air"}
+      {isLive ? t.on_air : t.off_air}
     </span>
   );
 }

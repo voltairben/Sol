@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useT } from "@/lib/i18n";
 
 type Status = "idle" | "sending" | "done" | "error";
 
@@ -22,36 +23,48 @@ function TypeOut({ text }: { text: string }) {
 }
 
 export function NewsletterForm() {
+  const t = useT();
   const [status, setStatus] = useState<Status>("idle");
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState(""); // honeypot
-  const [error, setError] = useState("");
+  const [errorCode, setErrorCode] = useState<string>("");
+
+  const errorText =
+    (
+      {
+        invalid: t.err_sub_invalid,
+        email: t.err_sub_email,
+        unconfigured: t.err_sub_unconfigured,
+        failed: t.err_sub_failed,
+        network: t.err_network,
+      } as Record<string, string>
+    )[errorCode] ?? errorCode;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setStatus("sending");
-    setError("");
+    setErrorCode("");
     try {
       const res = await fetch("/api/subscribe", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email, company }),
       });
-      const data = (await res.json()) as { ok?: boolean; error?: string };
+      const data = (await res.json()) as { ok?: boolean; code?: string };
       if (!res.ok) {
         setStatus("error");
-        setError(data.error ?? "request failed");
+        setErrorCode(data.code ?? "failed");
         return;
       }
       setStatus("done");
     } catch {
       setStatus("error");
-      setError("network error");
+      setErrorCode("network");
     }
   }
 
   if (status === "done") {
-    return <TypeOut text="ACCESS GRANTED. VERIFY INBOX_" />;
+    return <TypeOut text={t.newsletter_ok} />;
   }
 
   return (
@@ -66,8 +79,8 @@ export function NewsletterForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           disabled={status === "sending"}
-          placeholder="enter email"
-          aria-label="email address"
+          placeholder={t.ph_email}
+          aria-label={t.email_label}
           className="min-w-0 flex-1 border-0 border-b-2 border-[var(--border)] bg-transparent pb-0.5 text-[var(--text)] outline-none transition-colors placeholder:text-[var(--text-dim)] focus:border-[var(--persimmon)]"
         />
         <input
@@ -90,7 +103,7 @@ export function NewsletterForm() {
       </div>
       {status === "error" && (
         <p className="font-mono text-[0.68rem] text-[var(--persimmon)]">
-          ! {error}
+          ! {errorText}
         </p>
       )}
     </form>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BackdropScrim } from "@/components/layout/backdrop-scrim";
 import { BackLink } from "@/components/layout/back-link";
+import { PageHeading } from "@/components/layout/page-heading";
 import { ScheduleCard } from "@/components/control/schedule-card";
 
 export const metadata: Metadata = {
@@ -14,9 +15,7 @@ export default function SchedulePage() {
       <BackdropScrim />
       <BackLink />
 
-      <h1 className="font-departure text-xl uppercase tracking-[0.28em] text-[var(--text)]">
-        schedule<span className="text-[var(--text-dim)]">{" // broadcasts"}</span>
-      </h1>
+      <PageHeading variant="schedule" />
 
       <ScheduleCard />
     </div>

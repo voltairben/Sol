@@ -1,15 +1,19 @@
+"use client";
+
 import Image from "next/image";
+import { useT } from "@/lib/i18n";
 
 /**
  * Console-analyzer photo frame: greyscale at rest, resolves to full colour on
  * hover/focus, with luminous cyan corner brackets and a scanning sweep line.
  */
 export function PhotoFrame() {
+  const t = useT();
   return (
     <figure className="group relative aspect-[4/5] w-full overflow-hidden rounded-[3px] border border-[var(--border)] bg-black">
       <Image
         src="/sol-profile.jpg"
-        alt="SOL_DNB in the studio"
+        alt={t.photo_alt}
         fill
         sizes="(max-width: 640px) 100vw, 384px"
         priority

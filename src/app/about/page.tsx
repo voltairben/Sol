@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { BackdropScrim } from "@/components/layout/backdrop-scrim";
 import { BackLink } from "@/components/layout/back-link";
+import { PageHeading } from "@/components/layout/page-heading";
 import { PhotoFrame } from "@/components/about/photo-frame";
 import { BioLog } from "@/components/about/bio-log";
 import { TerminalPanel } from "@/components/ui/terminal-panel";
@@ -18,9 +19,7 @@ export default function AboutPage() {
       <BackdropScrim />
       <BackLink />
 
-      <h1 className="font-departure text-xl uppercase tracking-[0.28em] text-[var(--text)]">
-        profile<span className="text-[var(--text-dim)]">{" // sol_dnb"}</span>
-      </h1>
+      <PageHeading variant="about" />
 
       <div className="grid gap-8 md:grid-cols-[18rem_1fr] md:items-start">
         <PhotoFrame />

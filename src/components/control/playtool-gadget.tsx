@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import { SYNTH_VOICES, type SynthVoice } from "@/lib/synth";
 
 // Canvas 2D can't read CSS vars — keep the scope colour literal.
@@ -19,6 +20,7 @@ function accentOf(voice: SynthVoice) {
  * and closed on unmount.
  */
 export function PlaytoolGadget() {
+  const t = useT();
   const [active, setActive] = useState<string | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -135,7 +137,7 @@ export function PlaytoolGadget() {
       <div className="relative h-24 overflow-hidden rounded-[2px] border border-[var(--border)] bg-black/60">
         <canvas ref={canvasRef} className="h-full w-full" />
         <span className="absolute left-2 top-1.5 font-departure text-[0.5rem] uppercase tracking-[0.22em] text-[var(--cyan)]/60">
-          active output waveform
+          {t.pt_waveform}
         </span>
       </div>
 
@@ -171,7 +173,8 @@ export function PlaytoolGadget() {
                 {voice.label}
               </span>
               <span className="text-[0.58rem] text-[var(--text-dim)]">
-                {voice.description}
+                {(t as Record<string, string>)[`pt_desc_${voice.id}`] ??
+                  voice.description}
               </span>
             </button>
           );

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type Provider = "twitch" | "discord";
@@ -14,6 +15,7 @@ export function LoginButtons({
   next?: string;
   className?: string;
 }) {
+  const t = useT();
   const [pending, setPending] = useState<Provider | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,7 +55,7 @@ export function LoginButtons({
               "disabled:opacity-50",
             )}
           >
-            {pending === p ? "connecting…" : `▸ ${p}`}
+            {pending === p ? t.connecting : `▸ ${p}`}
           </button>
         ))}
       </div>

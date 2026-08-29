@@ -28,14 +28,14 @@ export async function submitRequest(
     title: formData.get("title"),
   });
   if (!parsed.success) {
-    return { ok: false, error: "Enter both an artist and a track title." };
+    return { ok: false, error: "fields" };
   }
 
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Sign in to open a request." };
+  if (!user) return { ok: false, error: "auth" };
 
   const { error } = await supabase.from("track_requests").insert({
     user_id: user.id,
@@ -58,7 +58,7 @@ export async function toggleUpvote(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { ok: false, error: "Sign in to vote." };
+  if (!user) return { ok: false, error: "auth" };
 
   const { error } = hasVoted
     ? await supabase
