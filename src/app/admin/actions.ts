@@ -189,3 +189,26 @@ export async function toggleScheduleEvent(
   revalidatePath("/schedule");
   return { ok: true };
 }
+
+// ── Track request queue ──────────────────────────────────────────
+
+/**
+ * Wipe every track request. `upvotes` has `on delete cascade`, so the votes
+ * go with them. Active homepage boards empty in realtime (one postgres_changes
+ * DELETE per row); revalidatePath covers fresh loads.
+ */
+export async function clearTrackRequests(): Promise<AdminResult> {
+  const denied = await assertAdmin();
+  if (denied) return denied;
+
+  // `id is not null` matches every row (id is the primary key).
+  const { error } = await createAdminClient()
+    .from("track_requests")
+    .delete()
+    .not("id", "is", null);
+  if (error) return { ok: false, error: error.message };
+
+  revalidatePath("/admin");
+  revalidatePath("/");
+  return { ok: true };
+}

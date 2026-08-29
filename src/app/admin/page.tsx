@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import type { ScheduleEvent } from "@/types/database";
 import { AdminLogin } from "./admin-login";
 import { AdminConsole } from "./admin-console";
+import { RequestQueueControl } from "./request-queue-control";
 import { ScheduleManager } from "./schedule-manager";
 
 export const metadata: Metadata = {
@@ -39,7 +40,10 @@ export default async function AdminPage() {
 
       {session.isAdmin ? (
         <>
-          <AdminConsole initialLive={initialLive} />
+          <div className="grid gap-6 sm:grid-cols-2 sm:items-start">
+            <AdminConsole initialLive={initialLive} />
+            <RequestQueueControl />
+          </div>
           <ScheduleManager initialEvents={events} />
         </>
       ) : (
