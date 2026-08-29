@@ -28,7 +28,7 @@ export function LangToggle() {
               : "text-[var(--text-dim)] hover:text-[var(--text)]",
           )}
         >
-          {l}
+          {l.toUpperCase()}
         </button>
       ))}
     </div>
