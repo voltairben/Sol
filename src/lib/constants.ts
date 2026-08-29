@@ -37,8 +37,7 @@ export const SOCIAL_LINKS = [
   },
   {
     id: "discord",
-    // ponytail: placeholder — swap for the real invite once Sol shares it.
-    href: "https://discord.gg/",
+    href: "https://discord.gg/vnqMzMBEr",
     tag: "DISCORD_SERVER",
     handle: "join the server",
     brand: "#5865F2",
