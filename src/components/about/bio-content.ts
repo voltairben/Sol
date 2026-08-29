@@ -1,45 +1,72 @@
+export type BlockTone = "cyan" | "persimmon" | "green" | "dim";
+
 export interface BioBlock {
-  kicker: string;
+  /** Log code, e.g. "01_THE_JOURNEY". */
+  code: string;
+  /** Right-side telemetry status word. */
+  status: string;
+  tone: BlockTone;
   body: string;
 }
 
 export interface Bio {
-  lead: string;
   blocks: BioBlock[];
 }
 
 export const BIO_EN: Bio = {
-  lead: "Who is SOL?",
   blocks: [
     {
-      kicker: "origin",
-      body: "I started experimenting with DJ equipment a long time ago. What began as curiosity slowly became craft — a name, a record collection, and an ear for the music, built one weekend at a time. My first booking came a couple of years later, and it stuck — I've been playing clubs and events across the south of the Netherlands ever since.",
+      code: "01_THE_JOURNEY",
+      status: "STABLE",
+      tone: "persimmon",
+      body: "It started around ten years ago, when Sol first got his hands on DJ equipment. A decade of steady focus followed — a record crate built one find at a time, mixing technique sharpened week after week, a proper rig assembled piece by piece. His first booking came eight years ago in the south of the Netherlands, and the pull of playing to a room has never let up.",
     },
     {
-      kicker: "the stream",
-      body: "In 2024 I met TMOCS, who pulled me into two things at once: livestreaming and playing vinyl. Both clicked immediately. I started my own stream that same year and haven't looked back — the energy of a packed room, but one that never closes, with the chat right in the middle of it. It runs alongside the club sets, not instead of them.",
+      code: "02_THE_STREAM_LINKUP",
+      status: "LIVE",
+      tone: "cyan",
+      body: "In 2024, TMOCS pulled him into two things at once — livestreaming, and the feel of mixing physical vinyl on air. Both landed instantly. Sol started his own stream that year and found a fast, warm, high-energy community on the other side of it: people who show up for the deep rollers and the heavy bass, week in, week out.",
     },
     {
-      kicker: "off the decks",
-      body: "These days I stream a few times a week. Tuesday is home base — live on Kick and Twitch at 19:00 CET — and weekends are looser, announced on Instagram and in the Discord. Away from the decks I teach physical education at a primary school, where the lesson I care most about is a simple one: you can do anything you set your mind to.",
+      code: "03_PE_CLASSROOM_VIBES",
+      status: "OPTIMAL",
+      tone: "green",
+      body: "Off the decks, Sol teaches physical education at a primary school. That job feeds straight into how he runs the stream — the belief that a kid clears any hurdle once they lock in, and a room that runs on respect, positivity, and everyone getting a little better. It's the same code the SOL_DNB chat runs on.",
+    },
+    {
+      code: "04_FREQUENCY_RANGE",
+      status: "LOCKED",
+      tone: "dim",
+      body: "Liquid, dancefloor, neurofunk, jungle — the whole spectrum, moving between warm vinyl and high-resolution digital inside a single set.",
     },
   ],
 };
 
 export const BIO_NL: Bio = {
-  lead: "Wie is SOL?",
   blocks: [
     {
-      kicker: "oorsprong",
-      body: "Een hele tijd geleden begon ik te experimenteren met dj-apparatuur. Wat als nieuwsgierigheid begon, werd langzaam vakmanschap — een naam, een platencollectie en een oor voor de muziek, weekend na weekend opgebouwd. Mijn eerste boeking kwam een paar jaar later, en het bleef hangen — sindsdien speel ik in clubs en op events door heel Zuid-Nederland.",
+      code: "01_THE_JOURNEY",
+      status: "STABLE",
+      tone: "persimmon",
+      body: "Het begon zo'n tien jaar geleden, toen Sol voor het eerst achter dj-apparatuur stond. Een decennium van gestage focus volgde — een platenbak die plaat voor plaat groeide, mixtechniek die week na week scherper werd, een volwaardige set-up stukje bij beetje opgebouwd. Zijn eerste boeking kwam acht jaar geleden in het zuiden van Nederland, en de trek om voor een zaal te spelen is nooit meer weggegaan.",
     },
     {
-      kicker: "de stream",
-      body: "In 2024 leerde ik TMOCS kennen, die me in één klap twee dingen liet ontdekken: livestreamen en vinyl draaien. Allebei voelde meteen goed. Datzelfde jaar startte ik mijn eigen stream, en ik heb geen moment achteromgekeken — de energie van een volle zaal, maar dan een die nooit sluit, met de chat er middenin. Het loopt naast de club-sets, niet in plaats daarvan.",
+      code: "02_THE_STREAM_LINKUP",
+      status: "LIVE",
+      tone: "cyan",
+      body: "In 2024 trok TMOCS hem in één klap twee kanten op — livestreamen, en het gevoel van vinyl draaien voor een camera. Allebei landde meteen. Datzelfde jaar startte Sol zijn eigen stream en vond aan de andere kant een snelle, warme, energieke community: mensen die er week in, week uit zijn voor de diepe rollers en de zware bass.",
     },
     {
-      kicker: "naast het draaien",
-      body: "Tegenwoordig stream ik een paar keer per week. Dinsdag is de vaste avond — live op Kick en Twitch om 19:00 CET — en het weekend is losser, aangekondigd op Instagram en in de Discord. Naast het draaien geef ik gymles op een basisschool, waar de belangrijkste les een simpele is: je kunt alles bereiken als je je er echt voor inzet.",
+      code: "03_PE_CLASSROOM_VIBES",
+      status: "OPTIMAL",
+      tone: "green",
+      body: "Naast het draaien geeft Sol gymles op een basisschool. Die baan voedt direct hoe hij de stream runt — de overtuiging dat een kind elke hindernis neemt als het zich vastbijt, en een ruimte die draait op respect, positiviteit en iedereen die een beetje beter wordt. Dezelfde code waar de SOL_DNB-chat op draait.",
+    },
+    {
+      code: "04_FREQUENCY_RANGE",
+      status: "LOCKED",
+      tone: "dim",
+      body: "Liquid, dancefloor, neurofunk, jungle — het hele spectrum, schakelend tussen warm vinyl en high-res digitaal binnen één set.",
     },
   ],
 };

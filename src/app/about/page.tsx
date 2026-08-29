@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { cn } from "@/lib/utils";
 import { BackdropScrim } from "@/components/layout/backdrop-scrim";
 import { BackLink } from "@/components/layout/back-link";
+import { ViewTabs } from "@/components/layout/view-tabs";
 import { PhotoFrame } from "@/components/about/photo-frame";
 import { BioLog } from "@/components/about/bio-log";
 import { TerminalPanel } from "@/components/ui/terminal-panel";
@@ -13,59 +15,87 @@ export const metadata: Metadata = {
 };
 
 const SPECS = [
-  { label: "console_input", value: "1210 MK7 TURNTABLES", tone: "text" },
-  { label: "media_formats", value: "WET VINYL // DIGITAL FLUID", tone: "cyan" },
+  {
+    label: "rig_hardware",
+    value: "Technics 1210 MK7 turntables",
+    sub: "+ Pioneer DJ mixer",
+  },
+  {
+    label: "signal_spectrum",
+    value: "Liquid / Dancefloor / Neurofunk / Jungle",
+    sub: "warm vinyl + high-res digital",
+    accent: true,
+  },
+  {
+    label: "core_mission",
+    value: "Slowly growing the vinyl collection",
+    sub: "community requests go to wax",
+  },
 ] as const;
 
 export default function AboutPage() {
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 pt-8 pb-16 sm:px-6">
+    <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 px-4 pt-8 pb-16">
       <BackdropScrim />
-      <BackLink />
+
+      <div className="flex items-center justify-between border-b border-[var(--border)] pb-4">
+        <BackLink />
+        <ViewTabs active="about" />
+      </div>
 
       <div className="grid gap-8 md:grid-cols-12 md:items-start">
-        <div className="flex flex-col gap-4 md:col-span-5">
+        {/* visual column */}
+        <div className="flex flex-col gap-3 md:col-span-5">
           <PhotoFrame />
 
-          <dl className="flex flex-col gap-3 rounded-[3px] border border-[var(--border)] bg-[color-mix(in_oklab,var(--surface)_50%,transparent)] p-4 text-[0.62rem]">
-            <p className="font-departure text-[0.55rem] uppercase tracking-[0.2em] text-[var(--persimmon)]">
-              [ rig_status ]
+          <div className="flex justify-between px-1 font-departure text-[0.46rem] uppercase tracking-[0.14em] text-[var(--text-dim)]">
+            <span>camera: optical_v2</span>
+            <span>lens: core_prime</span>
+            <span>focus: inf</span>
+          </div>
+
+          <div className="rounded-[3px] border border-[var(--border)] bg-[color-mix(in_oklab,var(--surface)_50%,transparent)] p-4">
+            <p className="mb-3 border-b border-[var(--border)] pb-2 font-departure text-[0.55rem] uppercase tracking-[0.16em] text-[var(--persimmon)]">
+              [ console_telemetry_specs ]
             </p>
-            {SPECS.map((s) => (
-              <div key={s.label} className="flex flex-col gap-0.5">
-                <dt className="font-departure uppercase tracking-[0.14em] text-[var(--text-dim)]">
-                  {s.label}:
-                </dt>
-                <dd
-                  className={
-                    s.tone === "cyan"
-                      ? "font-bold text-[var(--cyan)]"
-                      : "font-bold text-[var(--text)]"
-                  }
-                >
-                  {s.value}
-                </dd>
-              </div>
-            ))}
-          </dl>
+            <dl className="flex flex-col gap-3 text-[0.62rem]">
+              {SPECS.map((s) => (
+                <div key={s.label} className="flex flex-col gap-0.5">
+                  <dt className="font-departure uppercase tracking-[0.14em] text-[var(--text-dim)]">
+                    {s.label}:
+                  </dt>
+                  <dd
+                    className={cn(
+                      "font-bold",
+                      "accent" in s && s.accent
+                        ? "text-[var(--cyan)]"
+                        : "text-[var(--text)]",
+                    )}
+                  >
+                    {s.value}
+                  </dd>
+                  <dd className="text-[0.56rem] text-[var(--text-dim)]">
+                    {s.sub}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </div>
         </div>
 
-        <TerminalPanel
-          label="bio.log"
-          className="md:col-span-7"
-          bodyClassName="flex flex-col gap-6 p-5 sm:p-6"
-        >
+        {/* narrative column */}
+        <div className="flex flex-col gap-5 md:col-span-7">
           <header className="flex flex-col gap-1">
-            <h1 className="font-departure text-lg uppercase tracking-[0.22em] text-[var(--persimmon)]">
-              [ artist_biography // sol ]
+            <span className="font-departure text-[0.55rem] uppercase tracking-[0.25em] text-[var(--persimmon)]">
+              [ pilot_manifesto ]
+            </span>
+            <h1 className="font-departure text-lg uppercase tracking-[0.2em] text-[var(--text)] md:text-xl">
+              sol // biography
             </h1>
-            <p className="font-departure text-[0.58rem] uppercase tracking-[0.16em] text-[var(--text-dim)]">
-              [ spectrum: liquid // dancefloor // neurofunk // jungle ]
-            </p>
           </header>
 
           <BioLog />
-        </TerminalPanel>
+        </div>
       </div>
 
       <section className="w-full">
