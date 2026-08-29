@@ -40,26 +40,26 @@ export function TerminalPreloader({ onComplete }: { onComplete: () => void }) {
     BOOT_STAGES.length - 1,
   );
 
-  // ── progress simulation (~0.6s to full) ───────────────────────
+  // ── progress simulation (~1.5s to full) ───────────────────────
   useEffect(() => {
     const id = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) return 100;
-        return Math.min(prev + Math.floor(Math.random() * 10) + 9, 100);
+        return Math.min(prev + Math.floor(Math.random() * 7) + 4, 100);
       });
-    }, 70);
+    }, 100);
     return () => clearInterval(id);
   }, []);
 
-  // ── hand off once the bar fills (~1.4s total) ─────────────────
+  // ── hand off once the bar fills (~2.4s total) ─────────────────
   useEffect(() => {
     if (progress < 100) return;
     const hold = window.setTimeout(() => {
       setFading(true);
       // let the WebGL background compile + warm up behind the fade
       markBootComplete();
-    }, 180);
-    const done = window.setTimeout(onComplete, 680);
+    }, 380);
+    const done = window.setTimeout(onComplete, 900);
     return () => {
       clearTimeout(hold);
       clearTimeout(done);
