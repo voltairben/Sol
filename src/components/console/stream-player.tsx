@@ -2,7 +2,6 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
-import { LiveBanner } from "@/components/stream/live-banner";
 import { KickEmbed } from "./kick-embed";
 import { TwitchEmbed } from "./twitch-embed";
 
@@ -56,8 +55,6 @@ export function StreamPlayer() {
       <div className="relative aspect-video w-full overflow-hidden rounded-[2px] border border-[var(--border)] bg-black">
         {platform === "kick" ? <KickEmbed /> : <TwitchEmbed />}
       </div>
-
-      <LiveBanner />
     </div>
   );
 }

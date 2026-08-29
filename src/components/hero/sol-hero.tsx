@@ -11,7 +11,7 @@ export function SolHero() {
   const reduce = useReducedMotion();
 
   return (
-    <div className="relative flex select-none flex-col items-center justify-center py-8 md:py-12">
+    <div className="relative flex select-none flex-col items-center justify-center py-4">
       {/* Radial back-glow — melts the logo edges into whatever is behind */}
       <motion.div
         aria-hidden

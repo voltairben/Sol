@@ -125,7 +125,7 @@ export function PlaytoolGadget() {
   useEffect(() => () => void ctxRef.current?.close(), []);
 
   return (
-    <div className="terminal-panel mx-auto w-full max-w-2xl gap-6 p-6">
+    <div className="terminal-panel w-full gap-6 p-6">
       <div className="flex items-center justify-between border-b border-[var(--border)] pb-3">
         <span className="font-departure text-[0.62rem] uppercase tracking-[0.18em] text-[var(--text-dim)]">
           [ device: playtool_synth_v2 ]

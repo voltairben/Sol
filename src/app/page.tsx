@@ -1,51 +1,48 @@
 import { TerminalPanel } from "@/components/ui/terminal-panel";
 import { SolHero } from "@/components/hero/sol-hero";
 import { StreamPlayer } from "@/components/console/stream-player";
+import { LiveBanner } from "@/components/stream/live-banner";
 import { RequestBoard } from "@/components/hub/request-board";
 import { PlaytoolGadget } from "@/components/control/playtool-gadget";
 import { NewsletterForm } from "@/components/newsletter/newsletter-form";
 import { SocialLinks } from "@/components/links/social-links";
 
 /**
- * The deck — a single cinematic vertical flow: the logo, the stream front and
- * centre, then the controls stacked beneath it like a cockpit.
+ * The deck — one prioritised vertical column, every card the same width.
+ * 1 logo · 2 stream · 3 live banner · 4 requests · 5 playtool · 6 links
  */
 export default function Home() {
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-col items-center gap-12 px-4 pt-8 pb-16 sm:px-6">
+    <div className="mx-auto w-full max-w-4xl space-y-6 px-4 py-8">
       <SolHero />
 
-      {/* Stream — the immediate focal point */}
-      <section className="w-full max-w-5xl">
-        <TerminalPanel
-          label="stream.console"
-          status="[_] [口] [x]"
-          interactive
-          className="shadow-[0_0_50px_rgba(0,240,255,0.15)]"
-        >
-          <StreamPlayer />
-        </TerminalPanel>
-      </section>
+      <TerminalPanel
+        label="stream.console"
+        status="[_] [口] [x]"
+        interactive
+        className="shadow-[0_0_50px_rgba(0,240,255,0.15)]"
+        bodyClassName="p-6"
+      >
+        <StreamPlayer />
+      </TerminalPanel>
 
-      {/* Track requests — the dashboard controller docked under the feed */}
-      <section className="w-full max-w-3xl">
-        <RequestBoard />
-      </section>
+      {/* Renders only while the broadcast is live. */}
+      <LiveBanner />
 
-      {/* Playtool — the interactive synth deck */}
-      <section className="w-full">
-        <PlaytoolGadget />
-      </section>
+      <RequestBoard />
 
-      {/* Channels + signal list */}
-      <section className="w-full max-w-4xl">
-        <TerminalPanel label="links.socials" interactive bodyClassName="flex flex-col gap-5 p-5 sm:p-6">
-          <SocialLinks />
-          <div className="border-t border-[var(--border)] pt-4">
-            <NewsletterForm />
-          </div>
-        </TerminalPanel>
-      </section>
+      <PlaytoolGadget />
+
+      <TerminalPanel
+        label="links.socials"
+        interactive
+        bodyClassName="flex flex-col gap-6 p-6"
+      >
+        <SocialLinks />
+        <div className="border-t border-[var(--border)] pt-4">
+          <NewsletterForm />
+        </div>
+      </TerminalPanel>
     </div>
   );
 }
