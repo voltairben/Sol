@@ -12,7 +12,7 @@ import { SocialLinks } from "@/components/links/social-links";
  */
 export default function Home() {
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-col items-center gap-12 border-t border-[var(--border)] px-4 pt-6 pb-16 sm:px-6">
+    <div className="mx-auto flex w-full max-w-[1600px] flex-col items-center gap-12 px-4 pt-8 pb-16 sm:px-6">
       <SolHero />
 
       {/* Stream — the immediate focal point */}
