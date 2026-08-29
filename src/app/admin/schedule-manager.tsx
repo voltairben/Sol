@@ -98,6 +98,7 @@ export function ScheduleManager({
           value={form.title}
           onChange={(v) => set("title", v)}
           placeholder="Tuesday Vinyl Session"
+          maxLength={200}
         />
         <div className="grid gap-3 sm:grid-cols-2">
           <Field
@@ -105,12 +106,14 @@ export function ScheduleManager({
             value={form.date_string}
             onChange={(v) => set("date_string", v)}
             placeholder="TUESDAYS @ 19:00 CET"
+            maxLength={120}
           />
           <Field
             label="stream / location *"
             value={form.location}
             onChange={(v) => set("location", v)}
             placeholder="KICK / TWITCH LIVE"
+            maxLength={120}
           />
         </div>
         <label className="flex flex-col gap-1">
@@ -168,6 +171,11 @@ export function ScheduleManager({
         <h2 className="font-departure text-[0.68rem] uppercase tracking-[0.2em] text-[var(--cyan)]">
           [ logged events · {initialEvents.length} ]
         </h2>
+        <p className="text-[0.58rem] leading-relaxed text-[var(--text-dim)]">
+          &ldquo;set airing&rdquo; flags the event showing as live on the schedule
+          page — it does not put the site on air. Use the broadcast button above
+          for that.
+        </p>
         <ul className="flex max-h-[26rem] flex-col gap-2 overflow-y-auto pr-1">
           {initialEvents.length === 0 && (
             <li className="text-[0.72rem] text-[var(--text-dim)]">
@@ -229,10 +237,11 @@ export function ScheduleManager({
               <div className="flex shrink-0 flex-col gap-1 font-departure text-[0.52rem] uppercase tracking-[0.1em]">
                 <button
                   type="button"
+                  title="Marks this event as the one currently airing on the schedule page. Does not put the site on air — use the broadcast button up top for that."
                   onClick={() =>
                     run(
                       () => setScheduleEventLive(evt.id, !evt.is_live),
-                      evt.is_live ? "LIVE_ENDED" : "MARKED_LIVE",
+                      evt.is_live ? "AIRING_CLEARED" : "MARKED_AIRING",
                     )
                   }
                   disabled={busy}
@@ -243,7 +252,7 @@ export function ScheduleManager({
                       : "border-[var(--border)] text-[var(--text-dim)] hover:border-[var(--persimmon)] hover:text-[var(--persimmon)]",
                   )}
                 >
-                  {evt.is_live ? "● end" : "go live"}
+                  {evt.is_live ? "● airing" : "set airing"}
                 </button>
                 <button
                   type="button"
@@ -292,11 +301,13 @@ function Field({
   value,
   onChange,
   placeholder,
+  maxLength,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
+  maxLength?: number;
 }) {
   return (
     <label className="flex flex-col gap-1">
@@ -308,6 +319,7 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
+        maxLength={maxLength}
         className="rounded-[2px] border border-[var(--border)] bg-[var(--bg)] px-2.5 py-1.5 text-[0.82rem] text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] focus:border-[var(--cyan)]"
       />
     </label>

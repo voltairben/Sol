@@ -72,10 +72,20 @@ const EventInput = z.object({
   title: z.string().trim().min(1).max(200),
   date_string: z.string().trim().min(1).max(120),
   location: z.string().trim().min(1).max(120),
-  details: z.string().trim().max(600),
+  details: z.string().trim().max(600).optional().default(""),
 });
 
 export type EventDraft = z.input<typeof EventInput>;
+
+/** Turn the first Zod issue into a message that names the field and the problem. */
+function fieldError(error: z.ZodError): string {
+  const i = error.issues[0];
+  const field = String(i?.path[0] ?? "input").replaceAll("_", " ");
+  let why = "is invalid";
+  if (i?.code === "too_small") why = "is required";
+  else if (i?.code === "too_big") why = `is too long (max ${i.maximum})`;
+  return `${field} ${why}`.toUpperCase();
+}
 
 /** Insert a new event (appended to the end), or update the one named by `id`. */
 export async function saveScheduleEvent(
@@ -86,7 +96,7 @@ export async function saveScheduleEvent(
 
   const parsed = EventInput.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: "REQUIRED FIELD MISSING OR TOO LONG" };
+    return { ok: false, error: fieldError(parsed.error) };
   }
 
   const { id, details, ...rest } = parsed.data;
