@@ -27,6 +27,11 @@ const SPECS = [
     sub: "on the AT-LP140XP decks",
   },
   {
+    label: "monitors",
+    value: "2× KRK Rokit RP8 G5",
+    sub: "active studio monitors",
+  },
+  {
     label: "capture",
     value: "DJI Osmo Action 4",
     sub: "stream webcam",
