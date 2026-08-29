@@ -13,7 +13,7 @@ export const BIO_EN: Bio = {
   blocks: [
     {
       kicker: "origin",
-      body: "I started experimenting with DJ equipment about ten years ago. What began as curiosity slowly became craft — a name, a record collection, and an ear for the music, built one weekend at a time. My first booking came a couple of years later, and it stuck — I've been playing clubs and events across the south of the Netherlands ever since.",
+      body: "I started experimenting with DJ equipment a long time ago. What began as curiosity slowly became craft — a name, a record collection, and an ear for the music, built one weekend at a time. My first booking came a couple of years later, and it stuck — I've been playing clubs and events across the south of the Netherlands ever since.",
     },
     {
       kicker: "the stream",
@@ -31,7 +31,7 @@ export const BIO_NL: Bio = {
   blocks: [
     {
       kicker: "oorsprong",
-      body: "Zo'n tien jaar geleden begon ik te experimenteren met dj-apparatuur. Wat als nieuwsgierigheid begon, werd langzaam vakmanschap — een naam, een platencollectie en een oor voor de muziek, weekend na weekend opgebouwd. Mijn eerste boeking kwam een paar jaar later, en het bleef hangen — sindsdien speel ik in clubs en op events door heel Zuid-Nederland.",
+      body: "Een hele tijd geleden begon ik te experimenteren met dj-apparatuur. Wat als nieuwsgierigheid begon, werd langzaam vakmanschap — een naam, een platencollectie en een oor voor de muziek, weekend na weekend opgebouwd. Mijn eerste boeking kwam een paar jaar later, en het bleef hangen — sindsdien speel ik in clubs en op events door heel Zuid-Nederland.",
     },
     {
       kicker: "de stream",
