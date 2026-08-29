@@ -275,6 +275,21 @@
   }
 }
 
+@keyframes boot-reveal {
+  from {
+    opacity: 0.35;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.boot-reveal {
+  animation: boot-reveal 650ms ease-out;
+}
+
 @keyframes scan-sweep {
   0% {
     top: 0;
@@ -296,7 +311,8 @@
   .animate-pulse,
   .vapor-text,
   .vu-bar,
-  .scan-line {
+  .scan-line,
+  .boot-reveal {
     animation: none !important;
   }
   .scan-line {
