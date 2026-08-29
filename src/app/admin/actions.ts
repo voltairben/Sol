@@ -70,12 +70,11 @@ const EventInput = z.object({
   date_string: z.string().trim().min(1).max(120),
   location: z.string().trim().min(1).max(120),
   details: z.string().trim().max(600),
-  sort_order: z.coerce.number().int().min(0).max(9999),
 });
 
 export type EventDraft = z.input<typeof EventInput>;
 
-/** Insert a new event, or update the one named by `input.id`. */
+/** Insert a new event (appended to the end), or update the one named by `id`. */
 export async function saveScheduleEvent(
   input: EventDraft,
 ): Promise<AdminResult> {
@@ -88,14 +87,62 @@ export async function saveScheduleEvent(
   }
 
   const { id, details, ...rest } = parsed.data;
-  const row = { ...rest, details: details ? details : null };
+  const fields = { ...rest, details: details ? details : null };
   const db = createAdminClient();
 
-  const { error } = id
-    ? await db.from("schedule").update(row).eq("id", id)
-    : await db.from("schedule").insert(row);
+  if (id) {
+    const { error } = await db.from("schedule").update(fields).eq("id", id);
+    if (error) return { ok: false, error: error.message };
+  } else {
+    const { data: last } = await db
+      .from("schedule")
+      .select("sort_order")
+      .order("sort_order", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    const next = ((last?.sort_order as number | undefined) ?? -1) + 1;
+    const { error } = await db
+      .from("schedule")
+      .insert({ ...fields, sort_order: next });
+    if (error) return { ok: false, error: error.message };
+  }
 
+  revalidatePath("/admin");
+  revalidatePath("/schedule");
+  return { ok: true };
+}
+
+// ponytail: renumbers every row on each reorder — trivial for a schedule of a
+// handful of events. Swap for a two-row sort_order swap if it ever grows large.
+export async function reorderScheduleEvent(
+  id: string,
+  dir: "up" | "down",
+): Promise<AdminResult> {
+  const denied = await assertAdmin();
+  if (denied) return denied;
+
+  const db = createAdminClient();
+  const { data, error } = await db
+    .from("schedule")
+    .select("id")
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
   if (error) return { ok: false, error: error.message };
+
+  const ids = (data ?? []).map((r) => r.id as string);
+  const i = ids.indexOf(id);
+  const j = dir === "up" ? i - 1 : i + 1;
+  if (i < 0 || j < 0 || j >= ids.length) return { ok: true };
+
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+
+  for (let k = 0; k < ids.length; k++) {
+    const { error: e } = await db
+      .from("schedule")
+      .update({ sort_order: k })
+      .eq("id", ids[k]);
+    if (e) return { ok: false, error: e.message };
+  }
 
   revalidatePath("/admin");
   revalidatePath("/schedule");

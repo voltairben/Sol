@@ -8,15 +8,10 @@ import {
   saveScheduleEvent,
   deleteScheduleEvent,
   toggleScheduleEvent,
+  reorderScheduleEvent,
 } from "./actions";
 
-const EMPTY = {
-  title: "",
-  date_string: "",
-  location: "",
-  details: "",
-  sort_order: "0",
-};
+const EMPTY = { title: "", date_string: "", location: "", details: "" };
 type FormState = typeof EMPTY;
 
 export function ScheduleManager({
@@ -39,14 +34,7 @@ export function ScheduleManager({
     e.preventDefault();
     setBusy(true);
     setStatus("");
-    const res = await saveScheduleEvent({
-      id: editId ?? undefined,
-      title: form.title,
-      date_string: form.date_string,
-      location: form.location,
-      details: form.details,
-      sort_order: Number(form.sort_order) || 0,
-    });
+    const res = await saveScheduleEvent({ id: editId ?? undefined, ...form });
     setBusy(false);
     if (res.ok) {
       setForm(EMPTY);
@@ -65,7 +53,6 @@ export function ScheduleManager({
       date_string: evt.date_string,
       location: evt.location,
       details: evt.details ?? "",
-      sort_order: String(evt.sort_order),
     });
     setStatus("");
     formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -77,31 +64,21 @@ export function ScheduleManager({
     setStatus("");
   }
 
+  async function run(fn: () => Promise<{ ok: boolean; error?: string }>, ok: string) {
+    setBusy(true);
+    const res = await fn();
+    setBusy(false);
+    setStatus(res.ok ? ok : `ERROR: ${res.error ?? "?"}`);
+    if (res.ok) router.refresh();
+  }
+
   async function remove(id: string) {
     if (confirmId !== id) {
       setConfirmId(id);
       return;
     }
     setConfirmId(null);
-    setBusy(true);
-    const res = await deleteScheduleEvent(id);
-    setBusy(false);
-    setStatus(res.ok ? "EVENT_PURGED_FROM_GRID" : `ERROR: ${res.error ?? "?"}`);
-    if (res.ok) router.refresh();
-  }
-
-  async function toggle(evt: ScheduleEvent) {
-    setBusy(true);
-    const res = await toggleScheduleEvent(evt.id, !evt.is_active);
-    setBusy(false);
-    setStatus(
-      res.ok
-        ? evt.is_active
-          ? "EVENT_HIDDEN"
-          : "EVENT_PUBLISHED"
-        : `ERROR: ${res.error ?? "?"}`,
-    );
-    if (res.ok) router.refresh();
+    await run(() => deleteScheduleEvent(id), "EVENT_PURGED_FROM_GRID");
   }
 
   return (
@@ -145,14 +122,9 @@ export function ScheduleManager({
             className="resize-none rounded-[2px] border border-[var(--border)] bg-[var(--bg)] px-2.5 py-1.5 text-[0.82rem] text-[var(--text)] outline-none focus:border-[var(--cyan)]"
           />
         </label>
-        <div className="w-24">
-          <Field
-            label="position"
-            type="number"
-            value={form.sort_order}
-            onChange={(v) => set("sort_order", v)}
-          />
-        </div>
+        <p className="text-[0.58rem] text-[var(--text-dim)]">
+          new events are added to the bottom — reorder with ↑ ↓ in the list.
+        </p>
 
         {status && (
           <p
@@ -198,16 +170,47 @@ export function ScheduleManager({
               no events on the grid yet.
             </li>
           )}
-          {initialEvents.map((evt) => (
+          {initialEvents.map((evt, idx) => (
             <li
               key={evt.id}
               className={cn(
-                "flex items-start justify-between gap-3 rounded-[2px] border border-[var(--border)] bg-[var(--bg)] p-2.5",
+                "flex items-start gap-2 rounded-[2px] border border-[var(--border)] bg-[var(--bg)] p-2.5",
                 !evt.is_active && "opacity-45",
               )}
             >
-              <div className="min-w-0 text-[0.72rem]">
+              <div className="flex shrink-0 flex-col gap-1">
+                <button
+                  type="button"
+                  aria-label="Move up"
+                  onClick={() =>
+                    run(() => reorderScheduleEvent(evt.id, "up"), "ORDER_UPDATED")
+                  }
+                  disabled={busy || idx === 0}
+                  className="rounded-[2px] border border-[var(--border)] px-1.5 py-0.5 text-[0.6rem] text-[var(--text-dim)] transition-colors hover:text-[var(--text)] disabled:opacity-25"
+                >
+                  ↑
+                </button>
+                <button
+                  type="button"
+                  aria-label="Move down"
+                  onClick={() =>
+                    run(
+                      () => reorderScheduleEvent(evt.id, "down"),
+                      "ORDER_UPDATED",
+                    )
+                  }
+                  disabled={busy || idx === initialEvents.length - 1}
+                  className="rounded-[2px] border border-[var(--border)] px-1.5 py-0.5 text-[0.6rem] text-[var(--text-dim)] transition-colors hover:text-[var(--text)] disabled:opacity-25"
+                >
+                  ↓
+                </button>
+              </div>
+
+              <div className="min-w-0 flex-1 text-[0.72rem]">
                 <p className="font-departure uppercase tracking-[0.08em] text-[var(--text)]">
+                  <span className="text-[var(--text-dim)]">
+                    {String(idx + 1).padStart(2, "0")}{" "}
+                  </span>
                   {evt.title}
                 </p>
                 <p className="text-[var(--text-dim)]">{evt.date_string}</p>
@@ -218,6 +221,7 @@ export function ScheduleManager({
                   </p>
                 )}
               </div>
+
               <div className="flex shrink-0 flex-col gap-1 font-departure text-[0.52rem] uppercase tracking-[0.1em]">
                 <button
                   type="button"
@@ -228,7 +232,12 @@ export function ScheduleManager({
                 </button>
                 <button
                   type="button"
-                  onClick={() => toggle(evt)}
+                  onClick={() =>
+                    run(
+                      () => toggleScheduleEvent(evt.id, !evt.is_active),
+                      evt.is_active ? "EVENT_HIDDEN" : "EVENT_PUBLISHED",
+                    )
+                  }
                   disabled={busy}
                   className="rounded-[2px] border border-[var(--border)] px-1.5 py-1 text-[var(--text-dim)] transition-colors hover:text-[var(--text)] disabled:opacity-50"
                 >
@@ -261,13 +270,11 @@ function Field({
   value,
   onChange,
   placeholder,
-  type = "text",
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
-  type?: string;
 }) {
   return (
     <label className="flex flex-col gap-1">
@@ -275,7 +282,7 @@ function Field({
         {label}
       </span>
       <input
-        type={type}
+        type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
