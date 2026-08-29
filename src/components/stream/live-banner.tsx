@@ -26,8 +26,13 @@ export function LiveBanner() {
 
   useEffect(() => {
     if (!isLive) return;
+    // rAF paints the first value next frame; the interval keeps it ticking.
+    const raf = requestAnimationFrame(() => setNowMs(Date.now()));
     const id = setInterval(() => setNowMs(Date.now()), 1000);
-    return () => clearInterval(id);
+    return () => {
+      cancelAnimationFrame(raf);
+      clearInterval(id);
+    };
   }, [isLive]);
 
   if (!isLive) return null;

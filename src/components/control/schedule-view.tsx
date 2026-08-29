@@ -45,21 +45,18 @@ export function ScheduleView({ events }: { events: ScheduleEvent[] }) {
                     </p>
                   )}
                 </div>
-                <div className="flex shrink-0 flex-col gap-1 sm:items-end sm:text-right">
-                  <span className="font-mono text-[0.78rem] tabular-nums text-[var(--text)] transition-colors group-hover:text-[var(--cyan)]">
-                    {e.date_string}
-                  </span>
-                  <span className="font-departure text-[0.5rem] uppercase tracking-[0.2em] text-[var(--text-dim)]">
-                    {t.sched_status}
-                  </span>
-                </div>
+                <span className="shrink-0 font-mono text-[0.78rem] tabular-nums text-[var(--text)] transition-colors group-hover:text-[var(--cyan)] sm:text-right">
+                  {e.date_string}
+                </span>
               </div>
             </li>
           ))}
         </ul>
       )}
 
-      <p className="text-[0.6rem] text-[var(--text-dim)]">{t.sched_tz}</p>
+      {events.length > 0 && (
+        <p className="text-[0.6rem] text-[var(--text-dim)]">{t.sched_tz}</p>
+      )}
     </div>
   );
 }

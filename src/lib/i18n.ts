@@ -44,10 +44,8 @@ const en = {
   err_sub_failed: "send failed",
   err_network: "network error",
 
-  sched_next_up: "next up",
   sched_empty: "no transmissions logged on the grid.",
   sched_empty_sub: "check back soon, or join the Discord for go-live pings.",
-  sched_status: "broadcast ready",
   sched_tz: "all times CET (europe/amsterdam) unless noted",
 
   pt_waveform: "active output waveform",
@@ -107,10 +105,8 @@ const nl: Dict = {
   err_sub_failed: "verzenden mislukt",
   err_network: "netwerkfout",
 
-  sched_next_up: "straks",
   sched_empty: "nog geen uitzendingen op de grid.",
   sched_empty_sub: "check later terug, of join de Discord voor go-live pings.",
-  sched_status: "uitzending gereed",
   sched_tz: "alle tijden CET (europe/amsterdam) tenzij anders vermeld",
 
   pt_waveform: "actief uitgangssignaal",

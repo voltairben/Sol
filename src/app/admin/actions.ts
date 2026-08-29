@@ -15,6 +15,9 @@ async function assertAdmin(): Promise<AdminResult | null> {
     : { ok: false, error: "session expired — reload the page" };
 }
 
+const isUuid = (v: unknown): v is string =>
+  z.string().uuid().safeParse(v).success;
+
 /** Verify the passcode server-side and issue the encrypted iron-session cookie. */
 export async function verifyAdminPasscode(
   _prev: AdminResult,
@@ -120,6 +123,9 @@ export async function reorderScheduleEvent(
 ): Promise<AdminResult> {
   const denied = await assertAdmin();
   if (denied) return denied;
+  if (!isUuid(id) || (dir !== "up" && dir !== "down")) {
+    return { ok: false, error: "bad request" };
+  }
 
   const db = createAdminClient();
   const { data, error } = await db
@@ -152,6 +158,7 @@ export async function reorderScheduleEvent(
 export async function deleteScheduleEvent(id: string): Promise<AdminResult> {
   const denied = await assertAdmin();
   if (denied) return denied;
+  if (!isUuid(id)) return { ok: false, error: "bad request" };
 
   const { error } = await createAdminClient()
     .from("schedule")
@@ -170,10 +177,11 @@ export async function toggleScheduleEvent(
 ): Promise<AdminResult> {
   const denied = await assertAdmin();
   if (denied) return denied;
+  if (!isUuid(id)) return { ok: false, error: "bad request" };
 
   const { error } = await createAdminClient()
     .from("schedule")
-    .update({ is_active: isActive })
+    .update({ is_active: Boolean(isActive) })
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
 

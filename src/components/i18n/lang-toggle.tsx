@@ -5,7 +5,7 @@ import { setLang, useLang, type Lang } from "@/lib/lang-store";
 
 const OPTIONS: Lang[] = ["en", "nl"];
 
-/** EN / NL switch. Persists per browser; only the biography reads it today. */
+/** EN / NL switch. Persists per browser and syncs across tabs. */
 export function LangToggle() {
   const lang = useLang();
 

@@ -20,18 +20,22 @@ let current: Lang = typeof window === "undefined" ? "en" : read();
 const serverSnapshot = (): Lang => "en";
 const getSnapshot = (): Lang => current;
 
-function subscribe(cb: () => void): () => void {
-  subs.add(cb);
-  const onStorage = (e: StorageEvent) => {
+const notify = () => subs.forEach((f) => f());
+
+// One listener for the whole app — cross-tab language changes.
+if (typeof window !== "undefined") {
+  window.addEventListener("storage", (e) => {
     if (e.key === KEY) {
       current = read();
-      subs.forEach((f) => f());
+      notify();
     }
-  };
-  window.addEventListener("storage", onStorage);
+  });
+}
+
+function subscribe(cb: () => void): () => void {
+  subs.add(cb);
   return () => {
     subs.delete(cb);
-    window.removeEventListener("storage", onStorage);
   };
 }
 
@@ -43,7 +47,7 @@ export function setLang(next: Lang): void {
   } catch {
     /* private mode */
   }
-  subs.forEach((f) => f());
+  notify();
 }
 
 /** Current UI language, synced across components and browser tabs. */

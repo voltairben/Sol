@@ -1,6 +1,12 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { createClient } from "@/lib/supabase/client";
 
 interface StreamStateValue {
@@ -66,8 +72,13 @@ export function StreamStateProvider({
     };
   }, []);
 
+  const value = useMemo(
+    () => ({ isLive, liveSince, loading }),
+    [isLive, liveSince, loading],
+  );
+
   return (
-    <StreamStateContext.Provider value={{ isLive, liveSince, loading }}>
+    <StreamStateContext.Provider value={value}>
       {children}
     </StreamStateContext.Provider>
   );

@@ -35,15 +35,15 @@ export function ScheduleManager({
     setBusy(true);
     setStatus("");
     const res = await saveScheduleEvent({ id: editId ?? undefined, ...form });
-    setBusy(false);
     if (res.ok) {
       setForm(EMPTY);
       setStatus(editId ? "EVENT_UPDATED" : "EVENT_LOGGED_TO_GRID");
       setEditId(null);
-      router.refresh();
+      await router.refresh();
     } else {
       setStatus(`ERROR: ${res.error ?? "unknown"}`);
     }
+    setBusy(false);
   }
 
   function startEdit(evt: ScheduleEvent) {
@@ -64,12 +64,15 @@ export function ScheduleManager({
     setStatus("");
   }
 
-  async function run(fn: () => Promise<{ ok: boolean; error?: string }>, ok: string) {
+  async function run(
+    fn: () => Promise<{ ok: boolean; error?: string }>,
+    ok: string,
+  ) {
     setBusy(true);
     const res = await fn();
-    setBusy(false);
     setStatus(res.ok ? ok : `ERROR: ${res.error ?? "?"}`);
-    if (res.ok) router.refresh();
+    if (res.ok) await router.refresh();
+    setBusy(false);
   }
 
   async function remove(id: string) {
