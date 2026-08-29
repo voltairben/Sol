@@ -1,61 +1,65 @@
 "use client";
 
-import { TerminalPanel } from "@/components/ui/terminal-panel";
 import { LiveBanner } from "@/components/stream/live-banner";
-import { formatSlot } from "@/lib/schedule";
 import { useT } from "@/lib/i18n";
-import type { StreamSlot } from "@/types/database";
+import type { ScheduleEvent } from "@/types/database";
 
-export function ScheduleView({ slots }: { slots: StreamSlot[] }) {
+export function ScheduleView({ events }: { events: ScheduleEvent[] }) {
   const t = useT();
 
   return (
-    <TerminalPanel
-      label="broadcast.schedule"
-      status={t.sched_next_up}
-      tone="persimmon"
-    >
-      <div className="flex flex-col gap-3">
-        <LiveBanner />
+    <div className="flex flex-col gap-5">
+      <LiveBanner />
 
-        {slots.length === 0 ? (
-          <p className="text-[0.75rem] text-[var(--text-dim)]">
+      {events.length === 0 ? (
+        <div className="rounded-[3px] border border-dashed border-[var(--border)] bg-black/20 p-10 text-center">
+          <p className="font-departure text-[0.7rem] uppercase tracking-[0.2em] text-[var(--text-dim)]">
             {t.sched_empty}
           </p>
-        ) : (
-          <ol className="flex flex-col divide-y divide-[var(--border)]">
-            {slots.map((slot) => {
-              const f = formatSlot(slot);
-              return (
-                <li
-                  key={slot.id}
-                  className="flex flex-col gap-0.5 py-2.5 first:pt-0"
-                >
-                  <div className="flex items-center gap-2 text-[0.58rem]">
-                    <span className="font-departure uppercase tracking-[0.12em] text-[var(--text-dim)]">
-                      {f.day}
-                    </span>
-                    <span className="font-mono tabular-nums text-[var(--text-dim)]">
-                      {f.time}
-                      {f.duration ? ` · ${f.duration}` : ""}
-                    </span>
-                    {slot.genre && (
-                      <span className="ml-auto font-departure uppercase tracking-[0.1em] text-[var(--persimmon)]">
-                        {slot.genre}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[0.85rem] text-[var(--text)]">
-                    {slot.title}
-                  </p>
-                </li>
-              );
-            })}
-          </ol>
-        )}
+          <p className="mt-1.5 text-[0.7rem] text-[var(--text-dim)]">
+            {t.sched_empty_sub}
+          </p>
+        </div>
+      ) : (
+        <ul className="flex flex-col gap-4">
+          {events.map((e) => (
+            <li
+              key={e.id}
+              className="group relative overflow-hidden rounded-[3px] border border-[var(--border)] bg-[color-mix(in_oklab,var(--surface)_60%,transparent)] p-5 pl-6 transition-colors hover:border-[color-mix(in_oklab,var(--persimmon)_55%,transparent)]"
+            >
+              <span
+                aria-hidden
+                className="absolute inset-y-0 left-0 w-1 bg-[var(--border)] transition-colors group-hover:bg-[var(--persimmon)]"
+              />
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div className="flex min-w-0 flex-col gap-2">
+                  <span className="w-fit rounded-[2px] border border-[color-mix(in_oklab,var(--persimmon)_25%,transparent)] bg-[color-mix(in_oklab,var(--persimmon)_10%,transparent)] px-2 py-0.5 font-departure text-[0.52rem] uppercase tracking-[0.16em] text-[var(--persimmon)]">
+                    {e.location}
+                  </span>
+                  <h3 className="font-departure text-[0.95rem] uppercase tracking-[0.08em] text-[var(--text)]">
+                    {e.title}
+                  </h3>
+                  {e.details && (
+                    <p className="text-[0.78rem] leading-relaxed text-[var(--text-dim)]">
+                      {e.details}
+                    </p>
+                  )}
+                </div>
+                <div className="flex shrink-0 flex-col gap-1 sm:items-end sm:text-right">
+                  <span className="font-mono text-[0.78rem] tabular-nums text-[var(--text)] transition-colors group-hover:text-[var(--cyan)]">
+                    {e.date_string}
+                  </span>
+                  <span className="font-departure text-[0.5rem] uppercase tracking-[0.2em] text-[var(--text-dim)]">
+                    {t.sched_status}
+                  </span>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
 
-        <p className="text-[0.6rem] text-[var(--text-dim)]">{t.sched_tz}</p>
-      </div>
-    </TerminalPanel>
+      <p className="text-[0.6rem] text-[var(--text-dim)]">{t.sched_tz}</p>
+    </div>
   );
 }

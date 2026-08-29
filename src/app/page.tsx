@@ -40,7 +40,7 @@ export default function Home() {
       {/* Channels + signal list */}
       <section className="w-full max-w-4xl">
         <TerminalPanel label="links.socials" interactive bodyClassName="flex flex-col gap-5 p-5 sm:p-6">
-          <SocialLinks size="large" />
+          <SocialLinks />
           <div className="border-t border-[var(--border)] pt-4">
             <NewsletterForm />
           </div>

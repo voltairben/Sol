@@ -45,8 +45,10 @@ const en = {
   err_network: "network error",
 
   sched_next_up: "next up",
-  sched_empty: "no sets scheduled — check back soon.",
-  sched_tz: "times in CET · europe/amsterdam",
+  sched_empty: "no transmissions logged on the grid.",
+  sched_empty_sub: "check back soon, or join the Discord for go-live pings.",
+  sched_status: "broadcast ready",
+  sched_tz: "all times CET (europe/amsterdam) unless noted",
 
   pt_waveform: "active output waveform",
   pt_desc_sub_drop: "Deep 80→30Hz sub rumble",
@@ -106,8 +108,10 @@ const nl: Dict = {
   err_network: "netwerkfout",
 
   sched_next_up: "straks",
-  sched_empty: "nog geen sets gepland — check later terug.",
-  sched_tz: "tijden in CET · europe/amsterdam",
+  sched_empty: "nog geen uitzendingen op de grid.",
+  sched_empty_sub: "check later terug, of join de Discord voor go-live pings.",
+  sched_status: "uitzending gereed",
+  sched_tz: "alle tijden CET (europe/amsterdam) tenzij anders vermeld",
 
   pt_waveform: "actief uitgangssignaal",
   pt_desc_sub_drop: "Diepe 80→30Hz sub-rumble",

@@ -24,23 +24,31 @@ export const SOCIAL_LINKS = [
   {
     id: "kick",
     href: "https://kick.com/SOL_DNB",
-    tag: "KICK_DECK: LIVE",
+    tag: "KICK_DECK",
     handle: "SOL_DNB",
-    tone: "cyan",
+    brand: "#53FC18",
   },
   {
     id: "twitch",
     href: "https://www.twitch.tv/sol_dnb1",
-    tag: "TWITCH_DECK: OFFLINE_REPLAY",
+    tag: "TWITCH_DECK",
     handle: "sol_dnb1",
-    tone: "persimmon",
+    brand: "#9146FF",
+  },
+  {
+    id: "discord",
+    // ponytail: placeholder — swap for the real invite once Sol shares it.
+    href: "https://discord.gg/",
+    tag: "DISCORD_SERVER",
+    handle: "join the server",
+    brand: "#5865F2",
   },
   {
     id: "instagram",
     href: "https://www.instagram.com/sol_dnb/",
-    tag: "INSTAGRAM: STREAM_PICS",
+    tag: "INSTAGRAM",
     handle: "@sol_dnb",
-    tone: "cyan",
+    brand: "#E1306C",
   },
 ] as const;
 

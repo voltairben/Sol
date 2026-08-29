@@ -11,19 +11,15 @@ export interface StreamState {
   updated_at: string;
 }
 
-export type DnbGenre =
-  | "Liquid"
-  | "Dancefloor"
-  | "Neurofunk"
-  | "Jungle"
-  | "Breakbeat";
-
-export interface StreamSlot {
+/** A row Sol manages himself from /admin. Free-text date + location. */
+export interface ScheduleEvent {
   id: string;
-  starts_at: string;
-  ends_at: string | null;
   title: string;
-  genre: DnbGenre | null;
+  date_string: string;
+  location: string;
+  details: string | null;
+  is_active: boolean;
+  sort_order: number;
   created_at: string;
 }
 

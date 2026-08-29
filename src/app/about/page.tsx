@@ -31,7 +31,7 @@ export default function AboutPage() {
 
       <section className="w-full">
         <TerminalPanel label="links.socials" interactive bodyClassName="p-5 sm:p-6">
-          <SocialLinks size="large" />
+          <SocialLinks />
         </TerminalPanel>
       </section>
     </div>

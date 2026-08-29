@@ -1,16 +1,16 @@
 import { createClient } from "@/lib/supabase/server";
-import { scheduleWindowStart } from "@/lib/schedule";
-import type { StreamSlot } from "@/types/database";
+import type { ScheduleEvent } from "@/types/database";
 import { ScheduleView } from "./schedule-view";
 
+/** Server shell — pulls the live agenda Sol manages from /admin. */
 export async function ScheduleCard() {
   const supabase = await createClient();
   const { data } = await supabase
-    .from("stream_schedule")
+    .from("schedule")
     .select("*")
-    .gte("starts_at", scheduleWindowStart())
-    .order("starts_at", { ascending: true })
-    .limit(5);
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true });
 
-  return <ScheduleView slots={(data ?? []) as StreamSlot[]} />;
+  return <ScheduleView events={(data ?? []) as ScheduleEvent[]} />;
 }
