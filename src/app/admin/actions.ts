@@ -1,20 +1,10 @@
 "use server";
 
-import { createHash } from "node:crypto";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { getAdminSession } from "@/lib/admin-session";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { safeEqual } from "@/lib/verify-secret";
-
-// TEMP diagnostic — remove after the admin-login issue is resolved.
-function shape(label: string, v: string | undefined) {
-  if (v == null) return `${label}: <unset>`;
-  const sha8 = createHash("sha256").update(v).digest("hex").slice(0, 8);
-  const wrap =
-    (/^["' ]/.test(v) ? "L" : "") + (/["' ]$/.test(v) ? "T" : "") || "-";
-  return `${label}: len=${v.length} sha8=${sha8} edges=${wrap}`;
-}
 
 export type AdminResult = { ok: true } | { ok: false; error?: string };
 
@@ -36,13 +26,7 @@ export async function verifyAdminPasscode(
   const passcode = String(formData.get("passcode") ?? "");
   const expected = process.env.ADMIN_PASSCODE;
 
-  const match = Boolean(expected && passcode && safeEqual(passcode, expected));
-  console.warn(
-    `[admin-login] ${shape("typed", passcode)} | ${shape("env", expected)} | ` +
-      `secret_len=${process.env.ADMIN_SESSION_SECRET?.length ?? 0} match=${match}`,
-  );
-
-  if (!match) {
+  if (!expected || !passcode || !safeEqual(passcode, expected)) {
     return { ok: false, error: "ACCESS DENIED" };
   }
 
