@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { NavLink } from "./nav-link";
 
 /** `[ about ] [ schedule ]` view markers for the secondary pages. */
 export function ViewTabs({ active }: { active: "about" | "schedule" }) {
@@ -24,7 +24,7 @@ export function ViewTabs({ active }: { active: "about" | "schedule" }) {
             [ {tab.label} ]
           </span>
         ) : (
-          <Link
+          <NavLink
             key={tab.key}
             href={tab.href}
             className={cn(
@@ -33,7 +33,7 @@ export function ViewTabs({ active }: { active: "about" | "schedule" }) {
             )}
           >
             [ {tab.label} ]
-          </Link>
+          </NavLink>
         ),
       )}
     </div>

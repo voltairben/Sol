@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { setLang, useLang, type Lang } from "@/lib/lang-store";
+import { playSfx } from "@/lib/sfx";
 
 const OPTIONS: Lang[] = ["en", "nl"];
 
@@ -19,7 +20,11 @@ export function LangToggle() {
         <button
           key={l}
           type="button"
-          onClick={() => setLang(l)}
+          onClick={() => {
+            if (l === lang) return;
+            setLang(l);
+            playSfx("switch");
+          }}
           aria-pressed={lang === l}
           className={cn(
             "px-2 py-1 transition-colors first:rounded-l-[1px] last:rounded-r-[1px]",

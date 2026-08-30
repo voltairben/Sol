@@ -329,7 +329,11 @@ export function BlackHoleBackground() {
         scroll.y += (scroll.ty - scroll.y) * 0.06;
 
         gl.uniform2f(uRes, canvas.width, canvas.height);
-        gl.uniform1f(uTime, (now - t0) * 0.001);
+        // Wrap elapsed time at 20 min — keeps it small enough that the shader's
+        // hash / noise / sin terms stay float-precise instead of degrading into
+        // shimmer after the tab's been open a while. One coherent phase jump per
+        // wrap, imperceptible against the disk's turbulence.
+        gl.uniform1f(uTime, ((now - t0) * 0.001) % 1200);
         gl.uniform2f(uMouse, mouse.x, mouse.y);
         gl.uniform1f(uScroll, scroll.y);
         gl.uniform1f(uNarrow, narrow ? 1 : 0);

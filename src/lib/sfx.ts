@@ -98,7 +98,12 @@ function noise(ctx: AudioContext, dur: number): AudioBufferSourceNode {
   return src;
 }
 
-export type SfxName = "keyClick" | "switch" | "powerHum";
+export type SfxName =
+  | "keyClick"
+  | "switch"
+  | "powerHum"
+  | "nav"
+  | "outbound";
 
 const VOICES: Record<SfxName, (ctx: AudioContext, dest: AudioNode) => void> = {
   // low-frequency mechanical key-click — request submit / upvote
@@ -150,6 +155,68 @@ const VOICES: Record<SfxName, (ctx: AudioContext, dest: AudioNode) => void> = {
       osc.start(t + at);
       osc.stop(t + at + 0.06);
     }
+  },
+
+  // short futuristic sweep-click — menu links / page transitions
+  nav: (ctx, dest) => {
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(520, t);
+    osc.frequency.exponentialRampToValueAtTime(1500, t + 0.07);
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(0.26, t + 0.006);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.09);
+    osc.connect(g);
+    g.connect(dest);
+    osc.start(t);
+    osc.stop(t + 0.1);
+
+    const tick = noise(ctx, 0.015);
+    const hp = ctx.createBiquadFilter();
+    hp.type = "highpass";
+    hp.frequency.value = 3000;
+    const tg = ctx.createGain();
+    tg.gain.setValueAtTime(0.16, t);
+    tg.gain.exponentialRampToValueAtTime(0.0001, t + 0.015);
+    tick.connect(hp);
+    hp.connect(tg);
+    tg.connect(dest);
+    tick.start(t);
+    tick.stop(t + 0.02);
+  },
+
+  // outbound transmission — a quick descending double-click + faint carrier
+  outbound: (ctx, dest) => {
+    const t = ctx.currentTime;
+    for (const { f, at } of [
+      { f: 720, at: 0 },
+      { f: 480, at: 0.05 },
+    ]) {
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = "square";
+      osc.frequency.setValueAtTime(f, t + at);
+      g.gain.setValueAtTime(0.0001, t + at);
+      g.gain.exponentialRampToValueAtTime(0.2, t + at + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + at + 0.04);
+      osc.connect(g);
+      g.connect(dest);
+      osc.start(t + at);
+      osc.stop(t + at + 0.05);
+    }
+    const carrier = ctx.createOscillator();
+    const cg = ctx.createGain();
+    carrier.type = "sine";
+    carrier.frequency.setValueAtTime(1046, t);
+    cg.gain.setValueAtTime(0.0001, t);
+    cg.gain.exponentialRampToValueAtTime(0.06, t + 0.02);
+    cg.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+    carrier.connect(cg);
+    cg.connect(dest);
+    carrier.start(t);
+    carrier.stop(t + 0.14);
   },
 
   // analog power hum + glitch click — boot sequence complete

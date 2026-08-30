@@ -1,5 +1,6 @@
 import { SOCIAL_LINKS } from "@/lib/constants";
 import { BRAND_ICONS } from "./brand-icons";
+import { OutboundLink } from "./outbound-link";
 import { cn } from "@/lib/utils";
 
 /**
@@ -14,7 +15,7 @@ export function SocialLinks() {
         const Icon = BRAND_ICONS[link.id];
         return (
           <li key={link.id}>
-            <a
+            <OutboundLink
               href={link.href}
               target="_blank"
               rel="noopener noreferrer"
@@ -43,7 +44,7 @@ export function SocialLinks() {
               <span className="ml-auto shrink-0 text-[var(--text-dim)] transition-[color,transform] group-hover:translate-x-0.5 group-hover:text-[var(--brand)]">
                 ↗
               </span>
-            </a>
+            </OutboundLink>
           </li>
         );
       })}

@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { clearConsent } from "@/lib/consent";
+import { NavLink } from "./nav-link";
 import { SUPABASE_REGION } from "@/lib/constants";
 import { useStreamState } from "@/components/stream/stream-state-provider";
 import { useT } from "@/lib/i18n";
@@ -114,26 +114,26 @@ export function Footer({ commit }: { commit: string | null }) {
 
         {/* links */}
         <div className="flex shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-1.5 font-departure text-[0.58rem] uppercase tracking-[0.14em] [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap">
-          <Link
+          <NavLink
             href="/about"
             className="transition-colors hover:text-[var(--cyan)] focus-visible:text-[var(--cyan)] focus-visible:outline-none"
           >
             [ {t.nav_about} ]
-          </Link>
+          </NavLink>
           <span className="text-[var(--border)]">|</span>
-          <Link
+          <NavLink
             href="/schedule"
             className="transition-colors hover:text-[var(--persimmon)] focus-visible:text-[var(--persimmon)] focus-visible:outline-none"
           >
             [ {t.nav_schedule} ]
-          </Link>
+          </NavLink>
           <span className="text-[var(--border)]">|</span>
-          <Link
+          <NavLink
             href="/privacy"
             className="transition-colors hover:text-[var(--cyan)] focus-visible:text-[var(--cyan)] focus-visible:outline-none"
           >
             [ {t.footer_privacy} ]
-          </Link>
+          </NavLink>
           <span className="text-[var(--border)]">|</span>
           <button
             type="button"
