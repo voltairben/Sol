@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/layout/site-header";
 import { Footer } from "@/components/layout/footer";
 import { HtmlLangSync } from "@/components/i18n/html-lang-sync";
 import { BlackHoleBackground } from "@/components/effects/black-hole-background";
+import { Analytics } from "@vercel/analytics/next";
 import { getSiteURL } from "@/lib/site-url";
 import "./globals.css";
 
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             />
           </StreamStateProvider>
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
