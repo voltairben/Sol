@@ -3,6 +3,7 @@ import { BootGate } from "@/components/effects/boot-gate";
 import { SolHero } from "@/components/hero/sol-hero";
 import { StreamPlayer } from "@/components/console/stream-player";
 import { VinylVisualizer } from "@/components/stream/vinyl-visualizer";
+import { SignalMonitor } from "@/components/stream/signal-monitor";
 import { LiveBanner } from "@/components/stream/live-banner";
 import { RequestBoard } from "@/components/hub/request-board";
 import { FlightDeck } from "@/components/hub/flight-deck";
@@ -31,6 +32,9 @@ export default function Home() {
           <StreamPlayer />
           <div className="border-t border-[var(--border)] pt-5">
             <VinylVisualizer />
+          </div>
+          <div className="border-t border-[var(--border)] pt-5">
+            <SignalMonitor />
           </div>
         </TerminalPanel>
 

@@ -85,6 +85,9 @@ const en = {
   vinyl_live: "platter engaged · 33⅓ rpm",
   vinyl_idle: "platter idle",
 
+  sig_live_sub: "telemetry locked — pulling live platform stats",
+  sig_standby_sub: "no carrier on twitch or kick — deck on standby",
+
   sc_title: "system command shortcuts // index",
   sc_k: "toggle stream feed",
   sc_s: "focus track suggestion",
@@ -175,6 +178,9 @@ const nl: Dict = {
   footer_latency: "latency",
   footer_node: "node",
   footer_build: "build",
+
+  sig_live_sub: "telemetrie vergrendeld — live platformstats binnen",
+  sig_standby_sub: "geen signaal op twitch of kick — deck op standby",
 
   vinyl_live: "plaat draait · 33⅓ rpm",
   vinyl_idle: "plaat stil",
