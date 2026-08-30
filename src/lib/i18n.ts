@@ -17,9 +17,12 @@ const en = {
   live_now: "live now",
   live_sub: "broadcast in progress — tune in",
 
-  gate_prompt: "Sign in to suggest a track or upvote the queue.",
+  auth_card_body:
+    "Connect a session below to unlock the music cockpit and start requesting tracks.",
+  auth_twitch: "connect session via twitch",
+  auth_discord: "initialize discord session",
   queue_empty: "queue empty",
-  empty_locked: "no requests yet — sign in to be the first.",
+  empty_locked: "no requests yet — connect a session to be the first.",
   empty_open: "no requests yet — open one above.",
   open_request: "open a request",
   ph_artist: "artist",
@@ -27,7 +30,7 @@ const en = {
   submit_queue: "queue",
   on_deck: "on deck",
   upvote: "Upvote",
-  signin_to_vote: "Sign in to vote",
+  signin_to_vote: "Connect to vote",
   err_request_fields: "Enter both an artist and a track title.",
   err_request_auth: "Sign in to open a request.",
 
@@ -107,9 +110,12 @@ const nl: Dict = {
   live_now: "nu live",
   live_sub: "uitzending bezig — kijk mee",
 
-  gate_prompt: "Log in om een nummer voor te stellen of te stemmen.",
+  auth_card_body:
+    "Verbind hieronder een sessie om de cockpit te ontgrendelen en tracks aan te vragen.",
+  auth_twitch: "verbind sessie via twitch",
+  auth_discord: "discord-sessie initialiseren",
   queue_empty: "wachtrij leeg",
-  empty_locked: "nog geen verzoeken — log in om de eerste te zijn.",
+  empty_locked: "nog geen verzoeken — verbind een sessie om de eerste te zijn.",
   empty_open: "nog geen verzoeken — open er hierboven een.",
   open_request: "verzoek openen",
   ph_artist: "artiest",
@@ -117,7 +123,7 @@ const nl: Dict = {
   submit_queue: "toevoegen",
   on_deck: "draait nu",
   upvote: "Stem omhoog",
-  signin_to_vote: "Log in om te stemmen",
+  signin_to_vote: "Verbind om te stemmen",
   err_request_fields: "Vul zowel een artiest als een titel in.",
   err_request_auth: "Log in om een verzoek te openen.",
 

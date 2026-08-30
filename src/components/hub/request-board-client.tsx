@@ -12,7 +12,7 @@ import {
   type ChangeEvent,
 } from "@/lib/hub/requests";
 import type { TrackRequest, TrackRequestView, Upvote } from "@/types/database";
-import { GateDialog } from "@/components/auth/gate-dialog";
+import { AuthRequiredCard } from "@/components/auth/auth-required-card";
 import { RequestRow } from "./request-row";
 import { RequestForm } from "./request-form";
 import { BoardEmpty } from "./request-board-states";
@@ -35,7 +35,6 @@ export function RequestBoardClient({
     () => new Map(initialRequests.map((r) => [r.id, r])),
   );
   const [status, setStatus] = useState<ConnStatus>("connecting");
-  const [gateOpen, setGateOpen] = useState(false);
 
   // in-flight optimistic vote deltas, keyed by trackId
   const [pending, setPending] = useState<Map<string, 1 | -1>>(new Map());
@@ -123,7 +122,15 @@ export function RequestBoardClient({
   const statusLabel =
     status === "live" ? "● live" : status === "offline" ? "○ offline" : "…";
 
-  const openGate = useCallback(() => setGateOpen(true), []);
+  // Logged-out upvote → bounce attention to the auth card at the top.
+  const nudgeAuth = useCallback(() => {
+    const el = document.getElementById("auth-required");
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.remove("auth-nudge");
+    el.getBoundingClientRect(); // reflow so the animation can restart
+    el.classList.add("auth-nudge");
+  }, []);
 
   return (
     <TerminalPanel
@@ -133,7 +140,7 @@ export function RequestBoardClient({
       interactive
       bodyClassName="flex flex-col gap-3 p-6"
     >
-      <RequestForm authed={Boolean(userId)} onGate={openGate} />
+      {userId ? <RequestForm /> : <AuthRequiredCard />}
 
       {view.length === 0 ? (
         <BoardEmpty locked={!userId} />
@@ -147,13 +154,11 @@ export function RequestBoardClient({
               canVote={Boolean(userId)}
               busy={pending.has(r.id)}
               onUpvote={onUpvote}
-              onGate={openGate}
+              onGate={nudgeAuth}
             />
           ))}
         </ul>
       )}
-
-      <GateDialog open={gateOpen} onClose={() => setGateOpen(false)} />
     </TerminalPanel>
   );
 }
