@@ -11,7 +11,7 @@
  * Client components should still prefer `window.location.origin` where they
  * can — it is always correct regardless of this value.
  */
-const PRODUCTION_URL = "https://sol-voltairben.vercel.app";
+const PRODUCTION_URL = "https://soldnb.vercel.app";
 
 function normalize(raw: string): string {
   const withProto = raw.startsWith("http") ? raw : `https://${raw}`;
