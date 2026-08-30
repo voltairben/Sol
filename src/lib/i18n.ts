@@ -56,6 +56,26 @@ const en = {
   return_to_deck: "return_to_deck",
   photo_alt: "SOL_DNB in the studio",
 
+  consent_title: "external signal link required",
+  consent_body:
+    "The Kick and Twitch players load from their own servers and set their own cookies. Pick how to run the deck:",
+  consent_accept: "initialize signal trans-feed",
+  consent_accept_sub: "loads the live stream — allows Kick / Twitch cookies",
+  consent_decline: "run secure local console",
+  consent_decline_sub:
+    "everything except the embedded player — no third-party cookies",
+  feed_blocked: "external feed blocked",
+  feed_blocked_sub:
+    "The Kick / Twitch player loads from its own servers and sets its own cookies.",
+  feed_blocked_cta: "authorize cookies and load stream",
+
+  footer_core: "transmission core",
+  footer_tagline: "all rights to the bass reserved",
+  footer_cookies: "cookies",
+  footer_latency: "latency",
+  footer_node: "node",
+  footer_build: "build",
+
   autherr_kicker: "auth error",
   autherr_title: "Sign-in didn't complete",
   autherr_body:
@@ -113,6 +133,26 @@ const nl: Dict = {
 
   return_to_deck: "terug_naar_deck",
   photo_alt: "SOL_DNB in de studio",
+
+  consent_title: "externe signaalverbinding vereist",
+  consent_body:
+    "De Kick- en Twitch-spelers laden van hun eigen servers en plaatsen hun eigen cookies. Kies hoe je het deck draait:",
+  consent_accept: "signaal-transfeed initialiseren",
+  consent_accept_sub: "laadt de livestream — staat Kick / Twitch-cookies toe",
+  consent_decline: "beveiligde lokale console draaien",
+  consent_decline_sub:
+    "alles behalve de ingesloten speler — geen cookies van derden",
+  feed_blocked: "externe feed geblokkeerd",
+  feed_blocked_sub:
+    "De Kick- / Twitch-speler laadt van eigen servers en plaatst eigen cookies.",
+  feed_blocked_cta: "cookies toestaan en stream laden",
+
+  footer_core: "transmissiekern",
+  footer_tagline: "alle rechten op de bass voorbehouden",
+  footer_cookies: "cookies",
+  footer_latency: "latency",
+  footer_node: "node",
+  footer_build: "build",
 
   autherr_kicker: "auth-fout",
   autherr_title: "Inloggen is niet voltooid",

@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { markBootComplete } from "@/lib/boot-signal";
+import { setConsent, useConsent } from "@/lib/consent";
+import { useT } from "@/lib/i18n";
 
 interface Particle {
   angle: number;
@@ -32,13 +34,20 @@ const PALETTE = [
 /** Cinematic boot screen — a black-hole vortex + monospace boot diagnostics. */
 export function TerminalPreloader({ onComplete }: { onComplete: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const acceptRef = useRef<HTMLButtonElement>(null);
   const [progress, setProgress] = useState(0);
   const [fading, setFading] = useState(false);
+  const consent = useConsent();
+  const t = useT();
 
   const stage = Math.min(
     Math.floor((progress / 100) * BOOT_STAGES.length),
     BOOT_STAGES.length - 1,
   );
+
+  // At 100% we can't hand off until the viewer has authorised (or declined)
+  // the external Kick/Twitch feed. Returning visitors already chose — skip it.
+  const awaitingConsent = progress >= 100 && consent === null;
 
   // ── progress simulation (~1.5s to full) ───────────────────────
   useEffect(() => {
@@ -51,9 +60,9 @@ export function TerminalPreloader({ onComplete }: { onComplete: () => void }) {
     return () => clearInterval(id);
   }, []);
 
-  // ── hand off once the bar fills (~2.4s total) ─────────────────
+  // ── hand off once the bar fills + consent is settled (~2.4s) ──
   useEffect(() => {
-    if (progress < 100) return;
+    if (progress < 100 || consent === null) return;
     const hold = window.setTimeout(() => {
       setFading(true);
       // let the WebGL background compile + warm up behind the fade
@@ -64,7 +73,19 @@ export function TerminalPreloader({ onComplete }: { onComplete: () => void }) {
       clearTimeout(hold);
       clearTimeout(done);
     };
-  }, [progress, onComplete]);
+  }, [progress, consent, onComplete]);
+
+  // ── consent prompt: focus + 1/2 hotkeys ──────────────────────
+  useEffect(() => {
+    if (!awaitingConsent) return;
+    acceptRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "1") setConsent("granted");
+      else if (e.key === "2") setConsent("local");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [awaitingConsent]);
 
   // ── vortex particle field ─────────────────────────────────────
   useEffect(() => {
@@ -181,23 +202,61 @@ export function TerminalPreloader({ onComplete }: { onComplete: () => void }) {
             src="/sol-logo.png"
             alt=""
             fill
+            sizes="112px"
             className="object-contain"
             priority
           />
         </div>
 
         <div className="w-full space-y-3">
-          <div className="animate-pulse text-[10px] tracking-[0.18em] text-[var(--cyan)]">
-            {BOOT_STAGES[stage]}
+          <div className="text-[10px] tracking-[0.18em] text-[var(--cyan)]">
+            {awaitingConsent ? (
+              <span>[ SECURITY_PROTOCOL ] {t.consent_title.toUpperCase()}</span>
+            ) : (
+              <span className="animate-pulse">{BOOT_STAGES[stage]}</span>
+            )}
           </div>
 
           <div className="text-sm font-bold tracking-widest text-[var(--text-dim)]">
             {bar}
           </div>
 
-          <div className="rounded-[3px] border border-[color-mix(in_oklab,var(--persimmon)_20%,transparent)] bg-[color-mix(in_oklab,var(--persimmon)_10%,transparent)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--persimmon)]">
-            [ STAGE COMPLETE // {100 - progress}% REMAINING ]
-          </div>
+          {awaitingConsent ? (
+            <div className="space-y-2 text-left">
+              <p className="text-[10px] leading-relaxed text-[var(--text-dim)]">
+                {t.consent_body}
+              </p>
+              <button
+                ref={acceptRef}
+                type="button"
+                onClick={() => setConsent("granted")}
+                className="w-full rounded-[3px] border border-[color-mix(in_oklab,var(--cyan)_45%,transparent)] bg-[color-mix(in_oklab,var(--cyan)_10%,transparent)] px-3 py-2 text-[var(--cyan)] transition-colors hover:bg-[color-mix(in_oklab,var(--cyan)_18%,transparent)]"
+              >
+                <span className="block text-[11px] font-bold uppercase tracking-wider">
+                  [ 1 ] {t.consent_accept}
+                </span>
+                <span className="block text-[9px] text-[var(--text-dim)]">
+                  {t.consent_accept_sub}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setConsent("local")}
+                className="w-full rounded-[3px] border border-[var(--border)] px-3 py-2 text-[var(--text-dim)] transition-colors hover:border-[var(--text-dim)] hover:text-[var(--text)]"
+              >
+                <span className="block text-[11px] font-bold uppercase tracking-wider">
+                  [ 2 ] {t.consent_decline}
+                </span>
+                <span className="block text-[9px] text-[var(--text-dim)]">
+                  {t.consent_decline_sub}
+                </span>
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-[3px] border border-[color-mix(in_oklab,var(--persimmon)_20%,transparent)] bg-[color-mix(in_oklab,var(--persimmon)_10%,transparent)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--persimmon)]">
+              [ STAGE COMPLETE // {100 - progress}% REMAINING ]
+            </div>
+          )}
         </div>
 
         <div className="text-[9px] tracking-widest text-[var(--text-dim)]/60">

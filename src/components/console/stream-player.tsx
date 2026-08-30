@@ -2,8 +2,10 @@
 
 import { useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
+import { setConsent, useConsent } from "@/lib/consent";
 import { KickEmbed } from "./kick-embed";
 import { TwitchEmbed } from "./twitch-embed";
+import { FeedBlocked } from "./feed-blocked";
 
 type Platform = "kick" | "twitch";
 const KEY = "sol:player";
@@ -22,6 +24,7 @@ export function StreamPlayer() {
   const stored = useSyncExternalStore(noop, readStored, () => "kick" as Platform);
   const [override, setOverride] = useState<Platform | null>(null);
   const platform = override ?? stored;
+  const consent = useConsent();
 
   function choose(p: Platform) {
     setOverride(p);
@@ -53,7 +56,15 @@ export function StreamPlayer() {
       </div>
 
       <div className="relative aspect-video w-full overflow-hidden rounded-[2px] border border-[var(--border)] bg-black">
-        {platform === "kick" ? <KickEmbed /> : <TwitchEmbed />}
+        {consent === "granted" ? (
+          platform === "kick" ? (
+            <KickEmbed />
+          ) : (
+            <TwitchEmbed />
+          )
+        ) : (
+          <FeedBlocked onAuthorize={() => setConsent("granted")} />
+        )}
       </div>
     </div>
   );

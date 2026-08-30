@@ -3,6 +3,9 @@
 export const SITE_DOMAIN =
   process.env.NEXT_PUBLIC_SITE_DOMAIN ?? "localhost";
 
+/** Supabase project region — the DB + realtime node the app actually talks to. */
+export const SUPABASE_REGION = "eu-west-2";
+
 export const CHANNELS = {
   kick: "SOL_DNB",
   twitch: "sol_dnb1",

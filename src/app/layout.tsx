@@ -4,6 +4,7 @@ import localFont from "next/font/local";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { StreamStateProvider } from "@/components/stream/stream-state-provider";
 import { SiteHeader } from "@/components/layout/site-header";
+import { Footer } from "@/components/layout/footer";
 import { HtmlLangSync } from "@/components/i18n/html-lang-sync";
 import { BlackHoleBackground } from "@/components/effects/black-hole-background";
 import "./globals.css";
@@ -42,6 +43,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <StreamStateProvider>
             <SiteHeader />
             {children}
+            <Footer
+              commit={process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null}
+            />
           </StreamStateProvider>
         </AuthProvider>
       </body>
