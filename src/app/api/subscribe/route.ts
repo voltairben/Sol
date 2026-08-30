@@ -48,10 +48,13 @@ export async function POST(request: Request) {
 
   const from =
     process.env.RESEND_FROM?.trim() || "SOL_DNB <onboarding@resend.dev>";
+  // Where replies to the confirmation email land — set to a real inbox.
+  const replyTo = process.env.RESEND_REPLY_TO?.trim();
 
   const { error } = await resend.emails.send({
     from,
     to: email,
+    ...(replyTo ? { replyTo } : {}),
     subject: "[SOL_PORTAL] CONNECTION_ESTABLISHED",
     text: "Access granted. You are now on the list for SOL_DNB go-live notifications and vinyl-set drops.",
   });
