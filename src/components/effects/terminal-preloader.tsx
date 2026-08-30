@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { AnimatePresence, motion } from "motion/react";
 import { markBootComplete } from "@/lib/boot-signal";
-import { setConsent, useConsent } from "@/lib/consent";
+import { setConsent, useConsent, type Consent } from "@/lib/consent";
 import { useT } from "@/lib/i18n";
+import { cn } from "@/lib/utils";
 
 interface Particle {
   angle: number;
@@ -31,63 +33,14 @@ const PALETTE = [
   "rgba(139, 92, 246, ", // transition purple
 ];
 
-/** Cinematic boot screen — a black-hole vortex + monospace boot diagnostics. */
-export function TerminalPreloader({ onComplete }: { onComplete: () => void }) {
+/**
+ * 2D black-hole vortex. Lives only inside the opaque backdrop — when that
+ * layer is removed its effect cleanup cancels the rAF, so the vortex never
+ * runs alongside the WebGL background for longer than the 0.7s fade.
+ */
+function BootVortex() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const acceptRef = useRef<HTMLButtonElement>(null);
-  const [progress, setProgress] = useState(0);
-  const [fading, setFading] = useState(false);
-  const consent = useConsent();
-  const t = useT();
 
-  const stage = Math.min(
-    Math.floor((progress / 100) * BOOT_STAGES.length),
-    BOOT_STAGES.length - 1,
-  );
-
-  // At 100% we can't hand off until the viewer has authorised (or declined)
-  // the external Kick/Twitch feed. Returning visitors already chose — skip it.
-  const awaitingConsent = progress >= 100 && consent === null;
-
-  // ── progress simulation (~1.5s to full) ───────────────────────
-  useEffect(() => {
-    const id = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) return 100;
-        return Math.min(prev + Math.floor(Math.random() * 7) + 4, 100);
-      });
-    }, 100);
-    return () => clearInterval(id);
-  }, []);
-
-  // ── hand off once the bar fills + consent is settled (~2.4s) ──
-  useEffect(() => {
-    if (progress < 100 || consent === null) return;
-    const hold = window.setTimeout(() => {
-      setFading(true);
-      // let the WebGL background compile + warm up behind the fade
-      markBootComplete();
-    }, 380);
-    const done = window.setTimeout(onComplete, 900);
-    return () => {
-      clearTimeout(hold);
-      clearTimeout(done);
-    };
-  }, [progress, consent, onComplete]);
-
-  // ── consent prompt: focus + 1/2 hotkeys ──────────────────────
-  useEffect(() => {
-    if (!awaitingConsent) return;
-    acceptRef.current?.focus();
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "1") setConsent("granted");
-      else if (e.key === "2") setConsent("local");
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [awaitingConsent]);
-
-  // ── vortex particle field ─────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -120,7 +73,6 @@ export function TerminalPreloader({ onComplete }: { onComplete: () => void }) {
     }
 
     const draw = () => {
-      // motion-blur trail
       ctx.fillStyle = "rgba(11, 15, 25, 0.18)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -177,92 +129,192 @@ export function TerminalPreloader({ onComplete }: { onComplete: () => void }) {
     };
   }, []);
 
+  return (
+    <canvas
+      ref={canvasRef}
+      aria-hidden
+      className="pointer-events-none absolute inset-0 h-full w-full"
+    />
+  );
+}
+
+/**
+ * Cinematic boot screen. The opaque backdrop + vortex dissolve the instant the
+ * bar fills — that same moment fires `sol-boot-complete`, so the WebGL black
+ * hole compiles and starts rendering behind the screen. The consent card then
+ * floats over the live background until the viewer picks an option, and exits
+ * on its own fade so the deck (stream already loading if they chose the feed)
+ * is revealed underneath.
+ *
+ * Never server-rendered — BootGate only mounts it client-side — so there is no
+ * hydration surface here.
+ */
+export function TerminalPreloader({ onComplete }: { onComplete: () => void }) {
+  const acceptRef = useRef<HTMLButtonElement>(null);
+  const [progress, setProgress] = useState(0);
+  const [choiceMade, setChoiceMade] = useState(false);
+  const [backdropOut, setBackdropOut] = useState(false);
+  const [cardOut, setCardOut] = useState(false);
+  const consent = useConsent();
+  const t = useT();
+
+  const stage = Math.min(
+    Math.floor((progress / 100) * BOOT_STAGES.length),
+    BOOT_STAGES.length - 1,
+  );
+  const filled = progress >= 100;
+  const cardUp = filled && consent === null && !choiceMade;
+
+  // ── progress simulation (~1.5s to full) ───────────────────────
+  useEffect(() => {
+    const id = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) return 100;
+        return Math.min(prev + Math.floor(Math.random() * 7) + 4, 100);
+      });
+    }, 100);
+    return () => clearInterval(id);
+  }, []);
+
+  // ── bar full → start the WebGL background right away (fires once) ──
+  useEffect(() => {
+    if (filled) markBootComplete();
+  }, [filled]);
+
+  // ── hand back once both layers have finished leaving ──────────
+  useEffect(() => {
+    if (backdropOut && cardOut) onComplete();
+  }, [backdropOut, cardOut, onComplete]);
+
+  const choose = useCallback((c: Consent) => {
+    setConsent(c);
+    setChoiceMade(true);
+  }, []);
+
+  // ── consent card: focus + 1/2 hotkeys, torn down on choice/unmount ──
+  useEffect(() => {
+    if (!cardUp) return;
+    acceptRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "1") choose("granted");
+      else if (e.key === "2") choose("local");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [cardUp, choose]);
+
   const BAR = 20;
-  const filled = Math.floor((progress / 100) * BAR);
-  const bar = "█".repeat(filled) + "░".repeat(BAR - filled);
+  const barFilled = Math.floor((progress / 100) * BAR);
+  const bar = "█".repeat(barFilled) + "░".repeat(BAR - barFilled);
 
   return (
     <div
       role="status"
       aria-live="polite"
       aria-label="Loading SOL_DNB"
-      className={`fixed inset-0 z-50 flex select-none flex-col items-center justify-center bg-[#0B0F19] font-mono transition-all duration-500 ${
-        fading ? "pointer-events-none scale-105 opacity-0" : "scale-100 opacity-100"
-      }`}
+      className={cn(
+        "fixed inset-0 z-50 flex select-none items-center justify-center font-mono transition-colors duration-700",
+        cardUp ? "bg-[color-mix(in_oklab,#0B0F19_45%,transparent)]" : "bg-transparent",
+      )}
     >
-      <canvas
-        ref={canvasRef}
-        aria-hidden
-        className="pointer-events-none absolute inset-0 h-full w-full"
-      />
+      {/* opaque backdrop + vortex — dissolves the instant the bar fills */}
+      <AnimatePresence initial={false} onExitComplete={() => setBackdropOut(true)}>
+        {!filled && (
+          <motion.div
+            key="backdrop"
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="absolute inset-0 bg-[#0B0F19]"
+          >
+            <BootVortex />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      <div className="relative z-10 mx-4 flex w-full max-w-sm flex-col items-center gap-8 rounded-[6px] border border-[var(--border)] bg-black/40 p-6 text-center shadow-[0_12px_40px_rgba(0,0,0,0.8)] backdrop-blur-md">
-        <div className="relative size-28 [animation-duration:3s] animate-pulse [filter:drop-shadow(0_0_20px_color-mix(in_oklab,var(--cyan)_25%,transparent))]">
-          <Image
-            src="/sol-logo.png"
-            alt=""
-            fill
-            sizes="112px"
-            className="object-contain"
-            priority
-          />
-        </div>
-
-        <div className="w-full space-y-3">
-          <div className="text-[10px] tracking-[0.18em] text-[var(--cyan)]">
-            {awaitingConsent ? (
-              <span>[ SECURITY_PROTOCOL ] {t.consent_title.toUpperCase()}</span>
-            ) : (
-              <span className="animate-pulse">{BOOT_STAGES[stage]}</span>
+      {/* the console card */}
+      <AnimatePresence initial={false} onExitComplete={() => setCardOut(true)}>
+        {(!filled || cardUp) && (
+          <motion.div
+            key="card"
+            exit={{ opacity: 0, y: -12, filter: "blur(2px)" }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            className={cn(
+              "relative z-10 mx-4 flex w-full max-w-sm flex-col items-center gap-8 rounded-[6px] border p-6 text-center transition-[background-color,border-color,box-shadow] duration-700",
+              filled
+                ? "border-[color-mix(in_oklab,var(--cyan)_25%,transparent)] bg-[color-mix(in_oklab,var(--surface)_55%,transparent)] shadow-[0_0_50px_-10px_var(--cyan)] backdrop-blur-xl"
+                : "border-[var(--border)] bg-black/40 shadow-[0_12px_40px_rgba(0,0,0,0.8)] backdrop-blur-md",
             )}
-          </div>
-
-          <div className="text-sm font-bold tracking-widest text-[var(--text-dim)]">
-            {bar}
-          </div>
-
-          {awaitingConsent ? (
-            <div className="space-y-2 text-left">
-              <p className="text-[10px] leading-relaxed text-[var(--text-dim)]">
-                {t.consent_body}
-              </p>
-              <button
-                ref={acceptRef}
-                type="button"
-                onClick={() => setConsent("granted")}
-                className="w-full rounded-[3px] border border-[color-mix(in_oklab,var(--cyan)_45%,transparent)] bg-[color-mix(in_oklab,var(--cyan)_10%,transparent)] px-3 py-2 text-[var(--cyan)] transition-colors hover:bg-[color-mix(in_oklab,var(--cyan)_18%,transparent)]"
-              >
-                <span className="block text-[11px] font-bold uppercase tracking-wider">
-                  [ 1 ] {t.consent_accept}
-                </span>
-                <span className="block text-[9px] text-[var(--text-dim)]">
-                  {t.consent_accept_sub}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setConsent("local")}
-                className="w-full rounded-[3px] border border-[var(--border)] px-3 py-2 text-[var(--text-dim)] transition-colors hover:border-[var(--text-dim)] hover:text-[var(--text)]"
-              >
-                <span className="block text-[11px] font-bold uppercase tracking-wider">
-                  [ 2 ] {t.consent_decline}
-                </span>
-                <span className="block text-[9px] text-[var(--text-dim)]">
-                  {t.consent_decline_sub}
-                </span>
-              </button>
+          >
+            <div className="relative size-28 [animation-duration:3s] animate-pulse [filter:drop-shadow(0_0_20px_color-mix(in_oklab,var(--cyan)_25%,transparent))]">
+              <Image
+                src="/sol-logo.png"
+                alt=""
+                fill
+                sizes="112px"
+                className="object-contain"
+                priority
+              />
             </div>
-          ) : (
-            <div className="rounded-[3px] border border-[color-mix(in_oklab,var(--persimmon)_20%,transparent)] bg-[color-mix(in_oklab,var(--persimmon)_10%,transparent)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--persimmon)]">
-              [ STAGE COMPLETE // {100 - progress}% REMAINING ]
-            </div>
-          )}
-        </div>
 
-        <div className="text-[9px] tracking-widest text-[var(--text-dim)]/60">
-          SYS_INIT: COGNITIVE_SEQUENCE_STABLE // BUILD_STABLE
-        </div>
-      </div>
+            <div className="w-full space-y-3">
+              <div className="text-[10px] tracking-[0.18em] text-[var(--cyan)]">
+                {cardUp ? (
+                  <span>
+                    [ SECURITY_PROTOCOL ] {t.consent_title.toUpperCase()}
+                  </span>
+                ) : (
+                  <span className="animate-pulse">{BOOT_STAGES[stage]}</span>
+                )}
+              </div>
+
+              <div className="text-sm font-bold tracking-widest text-[var(--text-dim)]">
+                {bar}
+              </div>
+
+              {cardUp ? (
+                <div className="space-y-2 text-left">
+                  <p className="text-[10px] leading-relaxed text-[var(--text-dim)]">
+                    {t.consent_body}
+                  </p>
+                  <button
+                    ref={acceptRef}
+                    type="button"
+                    onClick={() => choose("granted")}
+                    className="w-full rounded-[3px] border border-[color-mix(in_oklab,var(--cyan)_45%,transparent)] bg-[color-mix(in_oklab,var(--cyan)_10%,transparent)] px-3 py-2 text-[var(--cyan)] transition-colors hover:bg-[color-mix(in_oklab,var(--cyan)_18%,transparent)]"
+                  >
+                    <span className="block text-[11px] font-bold uppercase tracking-wider">
+                      [ 1 ] {t.consent_accept}
+                    </span>
+                    <span className="block text-[9px] text-[var(--text-dim)]">
+                      {t.consent_accept_sub}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => choose("local")}
+                    className="w-full rounded-[3px] border border-[var(--border)] px-3 py-2 text-[var(--text-dim)] transition-colors hover:border-[var(--text-dim)] hover:text-[var(--text)]"
+                  >
+                    <span className="block text-[11px] font-bold uppercase tracking-wider">
+                      [ 2 ] {t.consent_decline}
+                    </span>
+                    <span className="block text-[9px] text-[var(--text-dim)]">
+                      {t.consent_decline_sub}
+                    </span>
+                  </button>
+                </div>
+              ) : (
+                <div className="rounded-[3px] border border-[color-mix(in_oklab,var(--persimmon)_20%,transparent)] bg-[color-mix(in_oklab,var(--persimmon)_10%,transparent)] px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[var(--persimmon)]">
+                  [ STAGE COMPLETE // {100 - progress}% REMAINING ]
+                </div>
+              )}
+            </div>
+
+            <div className="text-[9px] tracking-widest text-[var(--text-dim)]/60">
+              SYS_INIT: COGNITIVE_SEQUENCE_STABLE // BUILD_STABLE
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
