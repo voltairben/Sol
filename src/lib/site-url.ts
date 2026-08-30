@@ -1,19 +1,28 @@
 /**
- * Absolute site origin, no trailing slash. Priority:
- *   1. NEXT_PUBLIC_SITE_URL     — canonical production URL, set this on Vercel
- *   2. NEXT_PUBLIC_VERCEL_URL   — per-deployment URL Vercel injects (preview builds)
- *   3. http://localhost:3000    — local dev
+ * Absolute site origin, no trailing slash.
  *
- * Client components may also just use `window.location.origin`, which is the
- * most reliable value on preview deployments.
+ * `NEXT_PUBLIC_SITE_URL` cannot be set on this Vercel project (team /
+ * integration lock), so the production origin is hardcoded to the launch
+ * subdomain below. Resolution order:
+ *   1. NEXT_PUBLIC_SITE_URL  — honoured if it ever does get set
+ *   2. http://localhost:3000 — local dev only
+ *   3. PRODUCTION_URL        — the hardcoded fallback for every deployed build
+ *
+ * Client components should still prefer `window.location.origin` where they
+ * can — it is always correct regardless of this value.
  */
+const PRODUCTION_URL = "https://sol-voltairben.vercel.app";
+
+function normalize(raw: string): string {
+  const withProto = raw.startsWith("http") ? raw : `https://${raw}`;
+  return withProto.replace(/\/+$/, "");
+}
+
 export function getSiteURL(): string {
-  let raw =
-    process.env.NEXT_PUBLIC_SITE_URL ||
-    process.env.NEXT_PUBLIC_VERCEL_URL ||
-    "http://localhost:3000";
-  if (!raw.startsWith("http")) raw = `https://${raw}`;
-  return raw.replace(/\/+$/, "");
+  const explicit = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  if (explicit) return normalize(explicit);
+  if (process.env.NODE_ENV === "development") return "http://localhost:3000";
+  return PRODUCTION_URL;
 }
 
 /** Absolute URL of the OAuth callback route, with an optional post-login path. */
