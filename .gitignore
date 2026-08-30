@@ -40,6 +40,7 @@ yarn-error.log*
 # local dev helpers
 /screenshot.mjs
 /*.png
+/_*.mjs
 
 # stray nested scaffold from a parallel effort
 /sol-portal/
