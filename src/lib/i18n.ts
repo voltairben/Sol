@@ -73,9 +73,20 @@ const en = {
   footer_tagline: "all rights to the bass reserved",
   footer_designed_by: "designed by",
   footer_cookies: "cookies",
+  footer_privacy: "privacy",
   footer_latency: "latency",
   footer_node: "node",
   footer_build: "build",
+
+  vinyl_live: "platter engaged · 33⅓ rpm",
+  vinyl_idle: "platter idle",
+
+  sc_title: "system command shortcuts // index",
+  sc_k: "toggle stream feed",
+  sc_s: "focus track suggestion",
+  sc_m: "toggle audio feedback",
+  sc_h: "toggle this card",
+  sc_close: "close",
 
   autherr_kicker: "auth error",
   autherr_title: "Sign-in didn't complete",
@@ -152,9 +163,20 @@ const nl: Dict = {
   footer_tagline: "alle rechten op de bass voorbehouden",
   footer_designed_by: "ontworpen door",
   footer_cookies: "cookies",
+  footer_privacy: "privacy",
   footer_latency: "latency",
   footer_node: "node",
   footer_build: "build",
+
+  vinyl_live: "plaat draait · 33⅓ rpm",
+  vinyl_idle: "plaat stil",
+
+  sc_title: "systeemcommando's // index",
+  sc_k: "wissel stream feed",
+  sc_s: "focus nummerverzoek",
+  sc_m: "wissel audio feedback",
+  sc_h: "toon/verberg deze kaart",
+  sc_close: "sluiten",
 
   autherr_kicker: "auth-fout",
   autherr_title: "Inloggen is niet voltooid",

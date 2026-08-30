@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef } from "react";
 import { useT } from "@/lib/i18n";
+import { playSfx } from "@/lib/sfx";
 import { submitRequest } from "./actions";
 
 export function RequestForm({
@@ -36,7 +37,9 @@ export function RequestForm({
         if (!authed) {
           e.preventDefault();
           onGate();
+          return;
         }
+        playSfx("keyClick");
       }}
       className="flex flex-col gap-2 rounded-[2px] border border-[var(--border)] p-3"
     >
@@ -45,6 +48,7 @@ export function RequestForm({
       </p>
       <div className="flex flex-col gap-2 sm:flex-row">
         <input
+          id="track-suggest-input"
           name="artist"
           placeholder={t.ph_artist}
           required={authed}

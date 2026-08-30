@@ -193,6 +193,14 @@
     animation: live-pulse 1.6s ease-in-out infinite;
   }
 
+  /* ── Home: vinyl turntable — spins at 33⅓ rpm when live ──── */
+  .vinyl-spin {
+    animation: vinyl-spin 1.8s linear infinite;
+  }
+  .vinyl-live-glow {
+    animation: vinyl-glow 2.4s ease-in-out infinite;
+  }
+
   /* ── About: console-analyzer photo sweep ──────────────────── */
   .scan-line {
     position: absolute;
@@ -329,6 +337,22 @@
   }
 }
 
+@keyframes vinyl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes vinyl-glow {
+  0%,
+  100% {
+    box-shadow: 0 10px 34px -8px color-mix(in oklab, var(--cyan) 26%, transparent);
+  }
+  50% {
+    box-shadow: 0 10px 50px -2px color-mix(in oklab, var(--cyan) 46%, transparent);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .animate-onair,
   .animate-live,
@@ -337,11 +361,16 @@
   .vu-bar,
   .scan-line,
   .boot-reveal,
-  .live-bar {
+  .live-bar,
+  .vinyl-spin,
+  .vinyl-live-glow {
     animation: none !important;
   }
   .live-bar {
     box-shadow: 0 0 10px 1px var(--persimmon);
+  }
+  .vinyl-live-glow {
+    box-shadow: 0 10px 34px -8px color-mix(in oklab, var(--cyan) 30%, transparent);
   }
   .scan-line {
     display: none;

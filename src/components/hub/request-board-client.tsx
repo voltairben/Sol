@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { playSfx } from "@/lib/sfx";
 import { useSession } from "@/components/auth/auth-provider";
 import { TerminalPanel } from "@/components/ui/terminal-panel";
 import {
@@ -99,6 +100,7 @@ export function RequestBoardClient({
     async (track: TrackRequestView) => {
       if (!userId) return; // RequestRow renders the locked affordance
 
+      playSfx("keyClick");
       const delta: 1 | -1 = track.has_voted ? -1 : 1;
       setPending((p) => new Map(p).set(track.id, delta));
 

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { markBootComplete } from "@/lib/boot-signal";
 import { setConsent, useConsent, type Consent } from "@/lib/consent";
+import { playSfx } from "@/lib/sfx";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
@@ -189,6 +190,9 @@ export function TerminalPreloader({ onComplete }: { onComplete: () => void }) {
   const choose = useCallback((c: Consent) => {
     setConsent(c);
     setChoiceMade(true);
+    // boot sequence complete — the choice is the first user gesture, so this
+    // is the earliest a synthesised sound can actually play.
+    playSfx("powerHum");
   }, []);
 
   // ── consent card: focus + 1/2 hotkeys, torn down on choice/unmount ──

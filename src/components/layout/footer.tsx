@@ -113,7 +113,7 @@ export function Footer({ commit }: { commit: string | null }) {
         </div>
 
         {/* links */}
-        <div className="flex shrink-0 items-center gap-3 font-departure text-[0.58rem] uppercase tracking-[0.14em] [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap">
+        <div className="flex shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-1.5 font-departure text-[0.58rem] uppercase tracking-[0.14em] [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap">
           <Link
             href="/about"
             className="transition-colors hover:text-[var(--cyan)] focus-visible:text-[var(--cyan)] focus-visible:outline-none"
@@ -126,6 +126,13 @@ export function Footer({ commit }: { commit: string | null }) {
             className="transition-colors hover:text-[var(--persimmon)] focus-visible:text-[var(--persimmon)] focus-visible:outline-none"
           >
             [ {t.nav_schedule} ]
+          </Link>
+          <span className="text-[var(--border)]">|</span>
+          <Link
+            href="/privacy"
+            className="transition-colors hover:text-[var(--cyan)] focus-visible:text-[var(--cyan)] focus-visible:outline-none"
+          >
+            [ {t.footer_privacy} ]
           </Link>
           <span className="text-[var(--border)]">|</span>
           <button

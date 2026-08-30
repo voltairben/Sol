@@ -1,8 +1,10 @@
 "use server";
 
 import { z } from "zod";
+import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { notifyDiscordRequest } from "@/lib/discord-notify";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 
@@ -44,14 +46,24 @@ export async function submitRequest(
   } = await supabase.auth.getUser();
   if (!user) return { ok: false, error: "auth" };
 
+  const requester = displayNameFrom(user.user_metadata);
   const { error } = await supabase.from("track_requests").insert({
     user_id: user.id,
-    requester_name: displayNameFrom(user.user_metadata),
+    requester_name: requester,
     avatar_url: avatarFrom(user.user_metadata),
     artist: parsed.data.artist,
     title: parsed.data.title,
   });
   if (error) return { ok: false, error: error.message };
+
+  // Ping Sol's Discord after the response is sent — never blocks the submit.
+  after(() =>
+    notifyDiscordRequest({
+      artist: parsed.data.artist,
+      title: parsed.data.title,
+      by: requester,
+    }),
+  );
 
   revalidatePath("/");
   return { ok: true };

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { OnAirChip } from "./on-air-chip";
 import { HeaderNav } from "./header-nav";
 import { LangToggle } from "@/components/i18n/lang-toggle";
+import { AudioToggle } from "@/components/console/audio-toggle";
 
 export function SiteHeader() {
   return (
@@ -18,8 +19,9 @@ export function SiteHeader() {
 
         <HeaderNav />
 
-        <div className="ml-auto flex items-center gap-4">
+        <div className="ml-auto flex items-center gap-3">
           <LangToggle />
+          <AudioToggle />
           <OnAirChip />
         </div>
       </div>

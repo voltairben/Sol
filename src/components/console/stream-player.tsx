@@ -1,38 +1,21 @@
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
+import { setPlayer, usePlayer } from "@/lib/player-store";
+import { playSfx } from "@/lib/sfx";
 import { setConsent, useConsent } from "@/lib/consent";
 import { KickEmbed } from "./kick-embed";
 import { TwitchEmbed } from "./twitch-embed";
 import { FeedBlocked } from "./feed-blocked";
 
-type Platform = "kick" | "twitch";
-const KEY = "sol:player";
-
-const noop = () => () => {};
-function readStored(): Platform {
-  try {
-    return localStorage.getItem(KEY) === "twitch" ? "twitch" : "kick";
-  } catch {
-    return "kick";
-  }
-}
-
 export function StreamPlayer() {
-  // Persisted choice, SSR-safe (no hydration mismatch, no setState-in-effect).
-  const stored = useSyncExternalStore(noop, readStored, () => "kick" as Platform);
-  const [override, setOverride] = useState<Platform | null>(null);
-  const platform = override ?? stored;
+  const platform = usePlayer();
   const consent = useConsent();
 
-  function choose(p: Platform) {
-    setOverride(p);
-    try {
-      localStorage.setItem(KEY, p);
-    } catch {
-      /* private mode */
-    }
+  function choose(p: typeof platform) {
+    if (p === platform) return;
+    setPlayer(p);
+    playSfx("switch");
   }
 
   return (
