@@ -51,3 +51,7 @@ next-env.d.ts
 
 # local source drop for the profile photo (served copy lives in public/)
 /SolProfileImage/
+
+# python bytecode (OBS script dev)
+__pycache__/
+*.pyc

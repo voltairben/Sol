@@ -24,7 +24,13 @@ function clock(totalSecs: number): string {
  * Offline: a clean STANDBY readout with a parked 00:00:00 clock.
  */
 export function SignalMonitor() {
-  const { isLive: flagLive, liveSince } = useStreamState();
+  const {
+    isLive: flagLive,
+    liveSince,
+    bitrate,
+    fps,
+    droppedFrames,
+  } = useStreamState();
   const t = useT();
   const [tel, setTel] = useState<StreamTelemetry | null>(null);
   const [nowMs, setNowMs] = useState(0);
@@ -87,6 +93,11 @@ export function SignalMonitor() {
     ["TITLE", title],
   ];
 
+  // OBS encoder telemetry (POST /api/stream/status). Zeroed off air.
+  const encBitrate = live ? bitrate : 0;
+  const encFps = live ? fps : 0;
+  const encLoss = live ? droppedFrames : 0;
+
   return (
     <div
       className={cn(
@@ -132,7 +143,24 @@ export function SignalMonitor() {
         ))}
       </dl>
 
-      <p className="mt-3 border-t border-[var(--border)] pt-2 text-[0.62rem] text-[var(--text-dim)]">
+      <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 border-t border-[var(--border)] pt-2 text-[0.6rem] uppercase tracking-[0.08em] text-[var(--text-dim)]">
+        <span>
+          [ BITRATE:{" "}
+          <span className={cn(live && "text-[var(--text)]")}>
+            {encBitrate.toLocaleString("en-US")}
+          </span>{" "}
+          kbps ]
+        </span>
+        <span>
+          [ FPS:{" "}
+          <span className={cn(live && "text-[var(--text)]")}>{encFps}</span> ]
+        </span>
+        <span className={cn(encLoss > 0 && "text-[var(--persimmon)]")}>
+          [ LOSS: {encLoss.toLocaleString("en-US")} frames ]
+        </span>
+      </div>
+
+      <p className="mt-2 text-[0.62rem] text-[var(--text-dim)]">
         <span className="animate-pulse text-[var(--persimmon)]">▊</span>{" "}
         {live ? t.sig_live_sub : t.sig_standby_sub}
       </p>

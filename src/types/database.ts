@@ -9,6 +9,10 @@ export interface StreamState {
   id: 1;
   is_live: boolean;
   updated_at: string;
+  /** OBS encoder telemetry — pushed via POST /api/stream/status, 0 when off air. */
+  bitrate: number;
+  fps: number;
+  dropped_frames: number;
 }
 
 /** A row Sol manages himself from /admin. Free-text date + location. */
