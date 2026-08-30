@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getAdminSession } from "@/lib/admin-session";
+import { adminConfigured, getAdminSession } from "@/lib/admin-session";
 import { createClient } from "@/lib/supabase/server";
 import type { ScheduleEvent } from "@/types/database";
 import { AdminLogin } from "./admin-login";
@@ -13,6 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminPage() {
+  if (!adminConfigured()) return <AdminNotConfigured />;
+
   const session = await getAdminSession();
 
   let initialLive = false;
@@ -51,6 +53,30 @@ export default async function AdminPage() {
           <AdminLogin />
         </div>
       )}
+    </main>
+  );
+}
+
+function AdminNotConfigured() {
+  return (
+    <main className="mx-auto flex min-h-[65vh] w-full max-w-md flex-col justify-center gap-4 px-4 py-10 font-mono">
+      <p className="font-departure text-[0.7rem] uppercase tracking-[0.2em] text-[var(--persimmon)]">
+        [ admin_offline // not_configured ]
+      </p>
+      <p className="text-[0.8rem] leading-relaxed text-[var(--text-dim)]">
+        This deployment has no admin secrets. Set both in the Vercel project
+        (Settings → Environment Variables), tick Production, then redeploy:
+      </p>
+      <ul className="flex flex-col gap-1 text-[0.78rem] text-[var(--text)]">
+        <li>
+          <span className="text-[var(--persimmon)]">›</span>{" "}
+          <code>ADMIN_SESSION_SECRET</code> — 32+ random characters
+        </li>
+        <li>
+          <span className="text-[var(--persimmon)]">›</span>{" "}
+          <code>ADMIN_PASSCODE</code> — your login passphrase
+        </li>
+      </ul>
     </main>
   );
 }
