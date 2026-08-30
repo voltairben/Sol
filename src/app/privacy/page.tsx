@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { BackdropScrim } from "@/components/layout/backdrop-scrim";
 import { BackLink } from "@/components/layout/back-link";
-import { SUPABASE_REGION } from "@/lib/constants";
+import { CONTACT_EMAIL, SUPABASE_REGION } from "@/lib/constants";
 
 export const metadata: Metadata = {
   title: "privacy // SOL_DNB",
@@ -160,13 +160,20 @@ const BLOCKS: LogBlock[] = [
           and votes cascade-delete with it.
         </p>
         <p className="mt-2">
-          To make a request, reach SOL_DNB through the channels on the{" "}
+          To make a request, email{" "}
+          <a
+            href={`mailto:${CONTACT_EMAIL}`}
+            className="text-[var(--cyan)] underline underline-offset-2"
+          >
+            {CONTACT_EMAIL}
+          </a>{" "}
+          or reach SOL_DNB through the channels on the{" "}
           <a href="/about" className="text-[var(--cyan)] underline underline-offset-2">
             /about
           </a>{" "}
-          page (Instagram DM or the Discord server). You also have the right to
-          complain to your local data protection authority (in the Netherlands,
-          the Autoriteit Persoonsgegevens).
+          page. You also have the right to complain to your local data
+          protection authority (in the Netherlands, the Autoriteit
+          Persoonsgegevens).
         </p>
       </>
     ),

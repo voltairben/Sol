@@ -6,6 +6,9 @@ export const SITE_DOMAIN =
 /** Supabase project region — the DB + realtime node the app actually talks to. */
 export const SUPABASE_REGION = "eu-west-2";
 
+/** Public contact address (also the Resend sender / reply-to). */
+export const CONTACT_EMAIL = "contact@soldnb.com";
+
 export const CHANNELS = {
   kick: "SOL_DNB",
   twitch: "sol_dnb1",

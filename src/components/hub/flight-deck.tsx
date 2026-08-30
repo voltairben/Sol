@@ -77,7 +77,7 @@ export function FlightDeck() {
         type="button"
         onClick={() => setHelpOpen((v) => !v)}
         aria-label={t.sc_title}
-        className="fixed bottom-4 right-4 z-40 rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklab,var(--surface)_80%,transparent)] px-2 py-1 font-departure text-[0.58rem] uppercase tracking-[0.16em] text-[var(--text-dim)] backdrop-blur-sm transition-colors hover:border-[var(--cyan)] hover:text-[var(--cyan)]"
+        className="fixed bottom-4 right-4 z-40 hidden rounded-[2px] border border-[var(--border)] bg-[color-mix(in_oklab,var(--surface)_80%,transparent)] px-2 py-1 font-departure text-[0.58rem] uppercase tracking-[0.16em] text-[var(--text-dim)] backdrop-blur-sm transition-colors hover:border-[var(--cyan)] hover:text-[var(--cyan)] sm:block"
       >
         [ H ]
       </button>

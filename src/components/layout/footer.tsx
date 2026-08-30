@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { clearConsent } from "@/lib/consent";
 import { NavLink } from "./nav-link";
-import { SUPABASE_REGION } from "@/lib/constants";
+import { OutboundLink } from "@/components/links/outbound-link";
+import { CONTACT_EMAIL, SUPABASE_REGION } from "@/lib/constants";
 import { useStreamState } from "@/components/stream/stream-state-provider";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -52,68 +53,70 @@ export function Footer({ commit }: { commit: string | null }) {
 
   return (
     <footer className="mt-16 border-t border-[var(--border)] bg-[color-mix(in_oklab,var(--bg)_82%,transparent)] py-8 font-mono text-[10px] text-[var(--text-dim)]">
-      <div className="mx-auto flex w-full max-w-4xl flex-col items-center gap-6 px-4 text-center md:flex-row md:justify-between md:text-left">
-        {/* identity */}
-        <div className="flex flex-col items-center gap-1 md:items-start">
-          <span className="whitespace-nowrap font-departure text-[0.6rem] uppercase tracking-[0.24em] text-[var(--text)]">
-            SOL_DNB // {t.footer_core}
-          </span>
-          <span className="text-[9px] text-[var(--text-dim)]">
-            © {YEAR} PROJECT_SOL — {t.footer_tagline}
-          </span>
-          <span className="mt-0.5 flex items-center gap-1.5 text-[9px] text-[var(--text-dim)]">
-            {t.footer_designed_by}
-            <Image
-              src="/voltair-mark.png"
-              alt="Voltair"
-              width={11}
-              height={15}
-              className="inline-block translate-y-[0.5px]"
-            />
-            <span className="font-departure uppercase tracking-[0.16em] text-[var(--persimmon)]">
-              voltair_studio
+      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4">
+        <div className="flex flex-col items-center gap-6 text-center md:flex-row md:justify-between md:text-left">
+          {/* identity */}
+          <div className="flex flex-col items-center gap-1 md:items-start">
+            <span className="whitespace-nowrap font-departure text-[0.6rem] uppercase tracking-[0.24em] text-[var(--text)]">
+              SOL_DNB // {t.footer_core}
             </span>
-          </span>
-        </div>
+            <span className="text-[9px] text-[var(--text-dim)]">
+              © {YEAR} PROJECT_SOL — {t.footer_tagline}
+            </span>
+            <span className="mt-0.5 flex items-center gap-1.5 text-[9px] text-[var(--text-dim)]">
+              {t.footer_designed_by}
+              <Image
+                src="/voltair-mark.png"
+                alt="Voltair"
+                width={11}
+                height={15}
+                className="inline-block translate-y-[0.5px]"
+              />
+              <span className="font-departure uppercase tracking-[0.16em] text-[var(--persimmon)]">
+                voltair_studio
+              </span>
+            </span>
+          </div>
 
-        {/* telemetry — all real */}
-        <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 rounded-[3px] border border-[var(--border)] bg-[color-mix(in_oklab,var(--surface)_45%,transparent)] px-3 py-2">
-          <span className="flex items-center gap-1.5">
-            <span
-              aria-hidden
-              className={cn(
-                "size-1.5 rounded-full",
-                isLive
-                  ? "animate-pulse bg-[var(--cyan)]"
-                  : "bg-[var(--text-dim)]",
-              )}
-            />
-            <span className={isLive ? "text-[var(--cyan)]" : undefined}>
-              {(isLive ? t.on_air : t.off_air).toUpperCase()}
+          {/* telemetry — all real */}
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5 rounded-[3px] border border-[var(--border)] bg-[color-mix(in_oklab,var(--surface)_45%,transparent)] px-3 py-2">
+            <span className="flex items-center gap-1.5">
+              <span
+                aria-hidden
+                className={cn(
+                  "size-1.5 rounded-full",
+                  isLive
+                    ? "animate-pulse bg-[var(--cyan)]"
+                    : "bg-[var(--text-dim)]",
+                )}
+              />
+              <span className={isLive ? "text-[var(--cyan)]" : undefined}>
+                {(isLive ? t.on_air : t.off_air).toUpperCase()}
+              </span>
             </span>
-          </span>
-          <span className="uppercase">
-            {t.footer_latency}{" "}
-            <strong className="font-normal tabular-nums text-[var(--text)]">
-              {latency == null ? "—" : `${latency}ms`}
-            </strong>
-          </span>
-          <span className="uppercase">
-            {t.footer_node}{" "}
-            <strong className="font-normal text-[var(--text)]">
-              {SUPABASE_REGION}
-            </strong>
-          </span>
-          <span className="uppercase">
-            {t.footer_build}{" "}
-            <strong className="font-normal text-[var(--text)]">
-              {commit ?? "dev"}
-            </strong>
-          </span>
+            <span className="uppercase">
+              {t.footer_latency}{" "}
+              <strong className="font-normal tabular-nums text-[var(--text)]">
+                {latency == null ? "—" : `${latency}ms`}
+              </strong>
+            </span>
+            <span className="uppercase">
+              {t.footer_node}{" "}
+              <strong className="font-normal text-[var(--text)]">
+                {SUPABASE_REGION}
+              </strong>
+            </span>
+            <span className="uppercase">
+              {t.footer_build}{" "}
+              <strong className="font-normal text-[var(--text)]">
+                {commit ?? "dev"}
+              </strong>
+            </span>
+          </div>
         </div>
 
         {/* links */}
-        <div className="flex shrink-0 flex-wrap items-center justify-center gap-x-3 gap-y-1.5 font-departure text-[0.58rem] uppercase tracking-[0.14em] [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap">
+        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1.5 border-t border-[var(--border)] pt-4 font-departure text-[0.58rem] uppercase tracking-[0.14em] [&_a]:whitespace-nowrap [&_button]:whitespace-nowrap">
           <NavLink
             href="/about"
             className="transition-colors hover:text-[var(--cyan)] focus-visible:text-[var(--cyan)] focus-visible:outline-none"
@@ -134,6 +137,13 @@ export function Footer({ commit }: { commit: string | null }) {
           >
             [ {t.footer_privacy} ]
           </NavLink>
+          <span className="text-[var(--border)]">|</span>
+          <OutboundLink
+            href={`mailto:${CONTACT_EMAIL}`}
+            className="transition-colors hover:text-[var(--cyan)] focus-visible:text-[var(--cyan)] focus-visible:outline-none"
+          >
+            [ {t.footer_contact} ]
+          </OutboundLink>
           <span className="text-[var(--border)]">|</span>
           <button
             type="button"
