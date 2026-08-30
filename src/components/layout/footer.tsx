@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { clearConsent } from "@/lib/consent";
 import { SUPABASE_REGION } from "@/lib/constants";
@@ -59,6 +60,19 @@ export function Footer({ commit }: { commit: string | null }) {
           </span>
           <span className="text-[9px] text-[var(--text-dim)]">
             © {YEAR} PROJECT_SOL — {t.footer_tagline}
+          </span>
+          <span className="mt-0.5 flex items-center gap-1.5 text-[9px] text-[var(--text-dim)]">
+            {t.footer_designed_by}
+            <Image
+              src="/voltair-mark.png"
+              alt="Voltair"
+              width={11}
+              height={15}
+              className="inline-block translate-y-[0.5px]"
+            />
+            <span className="font-departure uppercase tracking-[0.16em] text-[var(--persimmon)]">
+              voltair_studio
+            </span>
           </span>
         </div>
 
