@@ -78,8 +78,14 @@ vec3 getStarfield(vec3 d) {
 }
 
 void main() {
+  float aspect = u_resolution.x / u_resolution.y;
+  // Fit to height up to ~2:1, then switch to "cover": cap the horizontal
+  // spread and crop vertically instead, so the disk keeps filling the width
+  // on wide / ultrawide monitors rather than stranding black bands on the sides.
+  float k = min(aspect, 2.0);
   vec2 aspectUV = (gl_FragCoord.xy / u_resolution) - vec2(0.5);
-  aspectUV.x *= u_resolution.x / u_resolution.y;
+  aspectUV.x *= k;
+  aspectUV.y *= k / aspect;
 
   float zCam = 18.0;
   float baseHeight = 2.4;
@@ -151,9 +157,19 @@ void main() {
         float dilation = sqrt(max(1.0 - 1.5 * r_s / rc, 0.05));
         float swirl = rc * 6.5 - u_time * kepSpeed * 4.5 * dilation;
 
+        // How edge-on this crossing is viewed. Near 0 = the disk is grazed
+        // almost tangentially (the arc lensed over the top, the ansae, the
+        // photon ring): a wide swath of the disk collapses into a few pixels,
+        // so the azimuthal streak coordinate races and the noise aliases into
+        // stretched, crawling smears.
+        float faceOn = smoothstep(0.04, 0.30, abs(normalize(v).y));
+
         float streaks = vnoiseWrapY(vec2(rc * 3.2, turns * 16.0 + swirl * 2.0), 16.0) * 0.6 +
                         vnoiseWrapY(vec2(rc * 1.2, turns * 8.0 + swirl * 1.0 + 5.0), 8.0) * 0.4;
         streaks = 0.2 + 1.8 * streaks * streaks;
+        // Dissolve the fine filaments toward a smooth band where the image is
+        // compressed, so the ring glides instead of smearing.
+        streaks = mix(0.78, streaks, faceOn);
 
         vec3 gasDir = normalize(vec3(-xc.z, 0.0, xc.x));
         float beta = clamp(inversesqrt(max(2.0 * (rc - r_s), 0.1)), 0.0, 0.95);
