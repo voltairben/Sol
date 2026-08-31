@@ -9,9 +9,11 @@ import { TerminalPanel } from "@/components/ui/terminal-panel";
 import { SocialLinks } from "@/components/links/social-links";
 
 export const metadata: Metadata = {
-  title: "profile // SOL_DNB",
+  title: "Profiel",
   description:
-    "From club circuits across the south of the Netherlands to a vinyl-driven livestream — the story of SOL_DNB.",
+    "Ontdek de mens achter de vinyl decks — van fysieke optredens in het zuiden van Nederland tot digitale Drum & Bass-streams met een community-gedreven missie.",
+  alternates: { canonical: "/about" },
+  openGraph: { url: "/about" },
 };
 
 const RIG = [

@@ -27,23 +27,51 @@ const departureMono = localFont({
 });
 
 const description =
-  "Live Drum & Bass from SOL_DNB — stream console, real-time track requests, and broadcast schedule.";
+  "Live vinyl & digitale Drum & Bass van SOL_DNB — stream console, realtime track-requests en het uitzendschema.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(getSiteURL()),
-  title: "SOL_DNB // terminal club",
+  title: {
+    default: "SOL_DNB // terminal club",
+    template: "%s // SOL_DNB",
+  },
   description,
   applicationName: "SOL_DNB",
+  keywords: [
+    "SOL_DNB",
+    "Drum & Bass",
+    "DNB",
+    "livestream",
+    "vinyl",
+    "Twitch",
+    "Kick",
+    "track request",
+    "terminal club",
+  ],
+  authors: [{ name: "SOL_DNB" }],
+  creator: "SOL_DNB",
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
+    locale: "nl_NL",
+    url: "/",
     siteName: "SOL_DNB",
-    title: "SOL_DNB // terminal club",
     description,
   },
   twitter: {
     card: "summary_large_image",
-    title: "SOL_DNB // terminal club",
     description,
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 

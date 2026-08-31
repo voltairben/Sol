@@ -4,9 +4,11 @@ import { BackLink } from "@/components/layout/back-link";
 import { PrivacyManifest } from "@/components/privacy/privacy-manifest";
 
 export const metadata: Metadata = {
-  title: "privacy // SOL_DNB",
+  title: "Privacybeleid",
   description:
-    "How the SOL_DNB portal handles data — privacy-first by design: no tracking, essential state only, third-party embeds blocked until you consent. Available in English and Dutch.",
+    "Hoe het SOL_DNB-portal met je gegevens omgaat — privacy-first: geen tracking, alleen essentiële state, embeds van derden geblokkeerd tot je toestemming geeft. Beschikbaar in het Nederlands en Engels.",
+  alternates: { canonical: "/privacy" },
+  openGraph: { url: "/privacy" },
 };
 
 export default function PrivacyPage() {

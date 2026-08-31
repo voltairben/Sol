@@ -5,8 +5,11 @@ import { ViewTabs } from "@/components/layout/view-tabs";
 import { ScheduleCard } from "@/components/control/schedule-card";
 
 export const metadata: Metadata = {
-  title: "schedule // SOL_DNB",
-  description: "Upcoming SOL_DNB Drum & Bass broadcasts — all times in CET.",
+  title: "Uitzendschema",
+  description:
+    "Bekijk wanneer SOL_DNB live gaat — de wekelijkse Drum & Bass-uitzendingen, alle tijden in CET.",
+  alternates: { canonical: "/schedule" },
+  openGraph: { url: "/schedule" },
 };
 
 export default function SchedulePage() {

@@ -1,0 +1,160 @@
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { ImageResponse } from "next/og";
+
+/** Shared 1200×630 terminal-club OG card. One look, per-page text. */
+
+export const OG_SIZE = { width: 1200, height: 630 };
+export const OG_CONTENT_TYPE = "image/png";
+
+const BG = "#0B0F19";
+const TEXT = "#C8D0DC";
+const DIM = "#6B7688";
+const PERSIMMON = "#FF6B35";
+const CYAN = "#00F0FF";
+const BORDER = "#1E2A38";
+
+const fontFile = (name: string) =>
+  readFile(fileURLToPath(new URL(`../_fonts/${name}`, import.meta.url)));
+
+export async function renderOgCard({
+  eyebrow,
+  title,
+  sub,
+}: {
+  eyebrow: string;
+  title: string;
+  sub: string;
+}) {
+  const [bold, regular] = await Promise.all([
+    fontFile("JetBrainsMono-Bold.ttf"),
+    fontFile("JetBrainsMono-Regular.ttf"),
+  ]);
+
+  const titleSize = title.length > 10 ? 76 : title.length > 7 ? 104 : 148;
+
+  return new ImageResponse(
+    (
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          background: BG,
+          color: TEXT,
+          fontFamily: "JBM",
+          padding: "72px 80px",
+          position: "relative",
+        }}
+      >
+        {/* persimmon signal bar */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 10,
+            background: PERSIMMON,
+          }}
+        />
+        {/* corner brackets */}
+        <div
+          style={{
+            position: "absolute",
+            top: 48,
+            left: 48,
+            width: 40,
+            height: 40,
+            borderTop: `3px solid ${CYAN}`,
+            borderLeft: `3px solid ${CYAN}`,
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: 48,
+            right: 48,
+            width: 40,
+            height: 40,
+            borderBottom: `3px solid ${CYAN}`,
+            borderRight: `3px solid ${CYAN}`,
+          }}
+        />
+
+        <div style={{ fontSize: 22, letterSpacing: 8, color: CYAN }}>
+          {eyebrow}
+        </div>
+
+        <div
+          style={{
+            fontSize: titleSize,
+            fontWeight: 700,
+            letterSpacing: 8,
+            lineHeight: 1,
+            marginTop: 24,
+          }}
+        >
+          {title}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            fontSize: 40,
+            letterSpacing: 6,
+            color: PERSIMMON,
+            marginTop: 14,
+          }}
+        >
+          {sub}
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            fontSize: 24,
+            letterSpacing: 3,
+            color: DIM,
+            marginTop: 48,
+            paddingTop: 28,
+            borderTop: `1px solid ${BORDER}`,
+          }}
+        >
+          LIVE DRUM &amp; BASS &nbsp;·&nbsp; KICK / TWITCH &nbsp;·&nbsp; REAL-TIME
+          REQUESTS
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            fontSize: 22,
+            color: DIM,
+            marginTop: 24,
+          }}
+        >
+          guest@sol_portal:~${" "}
+          <span
+            style={{
+              display: "flex",
+              width: 14,
+              height: 24,
+              background: PERSIMMON,
+              marginLeft: 10,
+            }}
+          />
+        </div>
+      </div>
+    ),
+    {
+      ...OG_SIZE,
+      fonts: [
+        { name: "JBM", data: bold, weight: 700, style: "normal" },
+        { name: "JBM", data: regular, weight: 400, style: "normal" },
+      ],
+    },
+  );
+}
