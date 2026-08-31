@@ -136,7 +136,7 @@ export async function renderOgCard({
             marginTop: 24,
           }}
         >
-          guest@sol_portal:~${" "}
+          guest@sol_portal{" "}
           <span
             style={{
               display: "flex",

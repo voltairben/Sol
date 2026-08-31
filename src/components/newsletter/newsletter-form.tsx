@@ -70,9 +70,7 @@ export function NewsletterForm() {
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-1.5">
       <div className="flex items-center gap-2 font-mono text-[0.75rem]">
-        <span className="shrink-0 text-[var(--text-dim)]">
-          guest@sol_portal:~$
-        </span>
+        <span className="shrink-0 text-[var(--text-dim)]">guest@sol_portal</span>
         <input
           type="email"
           required

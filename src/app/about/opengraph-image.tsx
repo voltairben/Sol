@@ -1,7 +1,7 @@
 import { OG_CONTENT_TYPE, OG_SIZE, renderOgCard } from "../_og/card";
 
 export const runtime = "nodejs";
-export const alt = "Over SOL_DNB — vinyl & digital Drum & Bass";
+export const alt = "Over SOL_DNB, vinyl en digitale Drum & Bass";
 export const size = OG_SIZE;
 export const contentType = OG_CONTENT_TYPE;
 

@@ -11,7 +11,7 @@ import { SocialLinks } from "@/components/links/social-links";
 export const metadata: Metadata = {
   title: "Profiel",
   description:
-    "Ontdek de mens achter de vinyl decks — van fysieke optredens in het zuiden van Nederland tot digitale Drum & Bass-streams met een community-gedreven missie.",
+    "Ontdek de mens achter de vinyl decks. Van optredens in het zuiden van Nederland tot een eigen Drum & Bass-stream met een hechte community.",
   alternates: { canonical: "/about" },
   openGraph: { url: "/about" },
 };
