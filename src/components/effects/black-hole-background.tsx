@@ -92,8 +92,8 @@ void main() {
   float scrollFactor = u_scroll * 1.8;
   vec3 ro = vec3(0.0, baseHeight - scrollFactor, zCam);
 
-  ro.xz = rot(ro.xz, u_mouse.x * 0.18);
-  ro.yz = rot(ro.yz, clamp(u_mouse.y * 0.12 - u_scroll * 0.08, -0.15, 0.15));
+  ro.xz = rot(ro.xz, u_mouse.x * 0.10);
+  ro.yz = rot(ro.yz, clamp(u_mouse.y * 0.06 - u_scroll * 0.08, -0.13, 0.13));
 
   vec3 lookAt = vec3(0.0, -u_scroll * 0.5, 0.0);
   vec3 ww = normalize(lookAt - ro);
@@ -107,7 +107,7 @@ void main() {
   float h2 = dot(cross(ro, rd), cross(ro, rd));
 
   float r_in = 2.6;
-  float r_out = 9.5;
+  float r_out = 12.0;
 
   vec3 x = ro;
   vec3 v = rd;
@@ -130,7 +130,7 @@ void main() {
     // Adaptive proximity speed limiter — keeps the near-disk loops concentric.
     float distToDiskPlane = abs(x.y);
     float dt = clamp(0.12 * r, 0.04, 1.35);
-    if (r >= r_in && r <= r_out * 1.4) {
+    if (r >= r_in && r <= r_out * 1.2) {
       dt = min(dt, max(0.015, distToDiskPlane * 0.45));
     }
 
@@ -149,7 +149,10 @@ void main() {
       float rc = length(xc);
 
       if (rc >= r_in && rc <= r_out) {
-        float band = smoothstep(r_in, r_in * 1.15, rc) * (1.0 - smoothstep(r_out * 0.8, r_out, rc));
+        // Long, gentle outer taper — a hard cut here reads as a blunt slab at
+        // the ansae (the disk tips, seen edge-on), which then wobbles as the
+        // disk turns. Fading over most of the radius lets the tips dissolve.
+        float band = smoothstep(r_in, r_in * 1.15, rc) * (1.0 - smoothstep(r_out * 0.42, r_out, rc));
 
         float phi = atan(xc.z, xc.x);
         float turns = phi / (2.0 * PI);
