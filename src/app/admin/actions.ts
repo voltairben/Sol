@@ -4,7 +4,10 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { getAdminSession } from "@/lib/admin-session";
-import { loginRateLimit } from "@/lib/admin-rate-limit";
+import {
+  decideRateLimit,
+  type AttemptRow,
+} from "@/lib/admin-rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { safeEqual } from "@/lib/verify-secret";
 
@@ -33,6 +36,53 @@ const lockMsg = (seconds: number) =>
   `TOO MANY ATTEMPTS — WAIT ${Math.max(1, Math.ceil(seconds / 60))} MIN`;
 
 /**
+ * DB-backed brute-force limiter (Supabase `admin_login_attempts`, one row per
+ * IP, service-role only). `check` before the compare, `fail` / `ok` after.
+ * Returns seconds until retry, or null when allowed.
+ *
+ * Fails OPEN on a DB error — the limiter is defence in depth, the passcode
+ * check is the real gate.
+ *
+ * ponytail: non-atomic read-modify-write. A concurrent burst can slip a few
+ * extra guesses past the 5-strike count before the block row sticks — fine
+ * for a single-admin passcode. Swap for an atomic SQL upsert if it matters.
+ */
+async function adminRateLimit(
+  ip: string,
+  phase: "check" | "fail" | "ok",
+): Promise<number | null> {
+  try {
+    const db = createAdminClient();
+    const { data } = await db
+      .from("admin_login_attempts")
+      .select("ip_address, attempts, last_attempt_at, blocked_until")
+      .eq("ip_address", ip)
+      .maybeSingle();
+
+    const { retryAfterSec, persist } = decideRateLimit(
+      (data as AttemptRow | null) ?? null,
+      phase,
+      Date.now(),
+    );
+
+    if (persist.kind === "delete") {
+      await db.from("admin_login_attempts").delete().eq("ip_address", ip);
+    } else if (persist.kind === "set") {
+      await db.from("admin_login_attempts").upsert({
+        ip_address: ip,
+        attempts: persist.attempts,
+        blocked_until: persist.blocked_until,
+        last_attempt_at: new Date().toISOString(),
+      });
+    }
+    return retryAfterSec;
+  } catch (err) {
+    console.error("admin rate-limit unavailable, allowing attempt:", err);
+    return null;
+  }
+}
+
+/**
  * Verify the passcode server-side and issue the encrypted iron-session cookie.
  * Rate-limited: 5 wrong tries per IP per 15 min → locked for 15 min.
  */
@@ -42,21 +92,21 @@ export async function verifyAdminPasscode(
 ): Promise<AdminResult> {
   const ip = await clientIp();
 
-  const locked = loginRateLimit(ip, "check");
+  const locked = await adminRateLimit(ip, "check");
   if (locked !== null) return { ok: false, error: lockMsg(locked) };
 
   const passcode = String(formData.get("passcode") ?? "");
   const expected = process.env.ADMIN_PASSCODE;
 
   if (!expected || !passcode || !safeEqual(passcode, expected)) {
-    const tripped = loginRateLimit(ip, "fail");
+    const tripped = await adminRateLimit(ip, "fail");
     return {
       ok: false,
       error: tripped !== null ? lockMsg(tripped) : "ACCESS DENIED",
     };
   }
 
-  loginRateLimit(ip, "ok");
+  await adminRateLimit(ip, "ok");
   const session = await getAdminSession();
   session.isAdmin = true;
   await session.save();

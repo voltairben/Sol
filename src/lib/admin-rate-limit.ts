@@ -1,70 +1,87 @@
 /**
- * In-memory brute-force limiter for the /admin passcode.
+ * Decision logic for the /admin passcode brute-force limiter. Pure — no I/O,
+ * no Next/Supabase imports — so it stays unit-testable. The DB round-trips
+ * (Supabase `admin_login_attempts`, service-role) live in admin/actions.ts.
  *
- * ponytail: per-instance Map. Vercel Fluid Compute reuses instances so it
- * holds against a single-source brute force; an attacker spread across many
- * IPs or cold instances gets more tries. Move the counter into Supabase if
- * the logs ever show that. Clients with no forwarded IP share one `unknown`
- * bucket (fail-closed — they lock each other out, which is fine here).
+ * Serverless-safe: the state is a Postgres row per client IP, shared across
+ * every Vercel function instance. The old version was an in-memory Map that
+ * ephemeral instances couldn't share.
  */
 
-const WINDOW_MS = 15 * 60_000;
-const MAX_FAILS = 5;
-const MAX_BUCKETS = 2000;
+export const MAX_FAILS = 5;
+export const BLOCK_MS = 15 * 60_000;
+/** Failures older than this don't count toward the limit. */
+export const WINDOW_MS = 15 * 60_000;
 
-interface Bucket {
-  fails: number;
-  firstAt: number;
-  blockedUntil: number;
+export interface AttemptRow {
+  ip_address: string;
+  attempts: number;
+  last_attempt_at: string;
+  blocked_until: string | null;
 }
 
-const store = new Map<string, Bucket>();
+export type Persist =
+  | { kind: "none" }
+  | { kind: "delete" }
+  | { kind: "set"; attempts: number; blocked_until: string | null };
 
-function prune(now: number): void {
-  if (store.size < MAX_BUCKETS) return;
-  for (const [k, b] of store) {
-    if (b.blockedUntil <= now && now - b.firstAt > WINDOW_MS) store.delete(k);
-  }
+export interface RateDecision {
+  /** null when the attempt is allowed; otherwise seconds until retry. */
+  retryAfterSec: number | null;
+  persist: Persist;
 }
 
 /**
- * `check` — before verifying the passcode. `fail` — after a wrong one.
- * `ok` — after a correct one (clears the bucket).
- * Returns seconds until the client may retry, or null when the attempt is
- * allowed. The synchronous body runs to completion between awaits, so
- * concurrent calls can't race past MAX_FAILS.
+ * `check` runs before the passcode compare, `fail` / `ok` after it.
+ * `row` is the current DB row for this IP, or null.
  */
-export function loginRateLimit(
-  key: string,
+export function decideRateLimit(
+  row: AttemptRow | null,
   phase: "check" | "fail" | "ok",
-  now: number = Date.now(),
-): number | null {
+  now: number,
+): RateDecision {
+  const blockedUntil = row?.blocked_until ? Date.parse(row.blocked_until) : 0;
+  const fresh = row
+    ? Date.parse(row.last_attempt_at) >= now - WINDOW_MS
+    : false;
+
   if (phase === "ok") {
-    store.delete(key);
-    return null;
+    return {
+      retryAfterSec: null,
+      persist: row ? { kind: "delete" } : { kind: "none" },
+    };
   }
 
-  const b = store.get(key);
-  if (b && b.blockedUntil > now) {
-    return Math.ceil((b.blockedUntil - now) / 1000);
+  if (blockedUntil > now) {
+    return {
+      retryAfterSec: Math.ceil((blockedUntil - now) / 1000),
+      persist: { kind: "none" },
+    };
   }
 
-  if (phase === "fail") {
-    prune(now);
-    if (!b || now - b.firstAt > WINDOW_MS) {
-      store.set(key, { fails: 1, firstAt: now, blockedUntil: 0 });
-    } else {
-      b.fails += 1;
-      if (b.fails >= MAX_FAILS) {
-        b.blockedUntil = now + WINDOW_MS;
-        return Math.ceil(WINDOW_MS / 1000);
-      }
-    }
+  if (phase === "check") {
+    // an expired block or a stale counter → tidy the row away, else leave it
+    const dirty = Boolean(row) && (blockedUntil > 0 || !fresh);
+    return {
+      retryAfterSec: null,
+      persist: dirty ? { kind: "delete" } : { kind: "none" },
+    };
   }
-  return null;
-}
 
-/** Test hook — wipes every bucket. Not referenced by app code. */
-export function __resetLoginRateLimit(): void {
-  store.clear();
+  // phase === "fail"
+  const attempts = (fresh ? row!.attempts : 0) + 1;
+  if (attempts >= MAX_FAILS) {
+    return {
+      retryAfterSec: Math.ceil(BLOCK_MS / 1000),
+      persist: {
+        kind: "set",
+        attempts,
+        blocked_until: new Date(now + BLOCK_MS).toISOString(),
+      },
+    };
+  }
+  return {
+    retryAfterSec: null,
+    persist: { kind: "set", attempts, blocked_until: null },
+  };
 }
