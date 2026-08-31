@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import { AuthProvider } from "@/components/auth/auth-provider";
@@ -37,6 +37,11 @@ export const metadata: Metadata = {
   },
   description,
   applicationName: "SOL_DNB",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black",
+    title: "SOL_DNB",
+  },
   keywords: [
     "SOL_DNB",
     "Drum & Bass",
@@ -73,6 +78,10 @@ export const metadata: Metadata = {
       "max-video-preview": -1,
     },
   },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#0B0F19",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
