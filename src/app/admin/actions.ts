@@ -2,7 +2,9 @@
 
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { getAdminSession } from "@/lib/admin-session";
+import { loginRateLimit } from "@/lib/admin-rate-limit";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { safeEqual } from "@/lib/verify-secret";
 
@@ -18,18 +20,43 @@ async function assertAdmin(): Promise<AdminResult | null> {
 const isUuid = (v: unknown): v is string =>
   z.string().uuid().safeParse(v).success;
 
-/** Verify the passcode server-side and issue the encrypted iron-session cookie. */
+async function clientIp(): Promise<string> {
+  const h = await headers();
+  return (
+    h.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    h.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+const lockMsg = (seconds: number) =>
+  `TOO MANY ATTEMPTS — WAIT ${Math.max(1, Math.ceil(seconds / 60))} MIN`;
+
+/**
+ * Verify the passcode server-side and issue the encrypted iron-session cookie.
+ * Rate-limited: 5 wrong tries per IP per 15 min → locked for 15 min.
+ */
 export async function verifyAdminPasscode(
   _prev: AdminResult,
   formData: FormData,
 ): Promise<AdminResult> {
+  const ip = await clientIp();
+
+  const locked = loginRateLimit(ip, "check");
+  if (locked !== null) return { ok: false, error: lockMsg(locked) };
+
   const passcode = String(formData.get("passcode") ?? "");
   const expected = process.env.ADMIN_PASSCODE;
 
   if (!expected || !passcode || !safeEqual(passcode, expected)) {
-    return { ok: false, error: "ACCESS DENIED" };
+    const tripped = loginRateLimit(ip, "fail");
+    return {
+      ok: false,
+      error: tripped !== null ? lockMsg(tripped) : "ACCESS DENIED",
+    };
   }
 
+  loginRateLimit(ip, "ok");
   const session = await getAdminSession();
   session.isAdmin = true;
   await session.save();
