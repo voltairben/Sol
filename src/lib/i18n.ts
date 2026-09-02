@@ -74,7 +74,6 @@ const en = {
 
   footer_core: "transmission core",
   footer_tagline: "all rights to the bass reserved",
-  footer_designed_by: "designed by",
   footer_cookies: "cookies",
   footer_privacy: "privacy",
   footer_contact: "contact",
@@ -171,7 +170,6 @@ const nl: Dict = {
 
   footer_core: "transmissiekern",
   footer_tagline: "alle rechten op de bass voorbehouden",
-  footer_designed_by: "ontworpen door",
   footer_cookies: "cookies",
   footer_privacy: "privacy",
   footer_contact: "contact",
